@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# KFNLAI Visitor Management System - Stop Script
+
+PID_FILE=".server.pid"
+
+if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE")
+    if ps -p $PID > /dev/null 2>&1; then
+        echo "Stopping server (PID: $PID)..."
+        kill $PID 2>/dev/null
+        sleep 1
+
+        # Force kill if still running
+        if ps -p $PID > /dev/null 2>&1; then
+            kill -9 $PID 2>/dev/null
+        fi
+
+        echo "✅ Server stopped."
+    else
+        echo "Server is not running."
+    fi
+    rm -f "$PID_FILE"
+else
+    echo "No server PID file found."
+
+    # Try to find and kill any vite process on common ports
+    VITE_PID=$(pgrep -f "vite" 2>/dev/null)
+    if [ -n "$VITE_PID" ]; then
+        echo "Found Vite process (PID: $VITE_PID), stopping..."
+        kill $VITE_PID 2>/dev/null
+        echo "✅ Server stopped."
+    else
+        echo "No running server found."
+    fi
+fi

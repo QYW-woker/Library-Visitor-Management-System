@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# KFNLAI Visitor Management System - Start/Restart Script
+
+PORT=${1:-8899}
+PID_FILE=".server.pid"
+
+# Stop existing server if running
+if [ -f "$PID_FILE" ]; then
+    OLD_PID=$(cat "$PID_FILE")
+    if ps -p $OLD_PID > /dev/null 2>&1; then
+        echo "Stopping existing server (PID: $OLD_PID)..."
+        kill $OLD_PID 2>/dev/null
+        sleep 1
+    fi
+    rm -f "$PID_FILE"
+fi
+
+# Start new server
+echo "Starting KFNLAI Visitor Management System on port $PORT..."
+nohup npx vite --port $PORT --host > .server.log 2>&1 &
+echo $! > "$PID_FILE"
+
+sleep 2
+
+if ps -p $(cat "$PID_FILE") > /dev/null 2>&1; then
+    echo ""
+    echo "✅ Server started successfully!"
+    echo ""
+    echo "   Local:   http://localhost:$PORT/"
+    echo "   Network: http://$(hostname -I | awk '{print $1}'):$PORT/"
+    echo ""
+    echo "   Staff H5:  http://localhost:$PORT/"
+    echo "   Admin:     http://localhost:$PORT/admin"
+    echo ""
+    echo "   To stop:   ./stop"
+else
+    echo "❌ Failed to start server. Check .server.log for details."
+    exit 1
+fi

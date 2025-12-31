@@ -25,9 +25,6 @@ export async function recognizeChineseId(base64Image) {
   }
 
   try {
-    // 移除Base64前缀 (data:image/jpeg;base64,)
-    const imageData = base64Image.replace(/^data:image\/\w+;base64,/, '')
-
     const response = await fetch(COZE_CONFIG.apiUrl, {
       method: 'POST',
       headers: {
@@ -37,12 +34,13 @@ export async function recognizeChineseId(base64Image) {
       body: JSON.stringify({
         workflow_id: COZE_CONFIG.workflowId,
         parameters: {
-          image: imageData,
-          // 或者如果扣子需要完整的data URL
-          image_url: base64Image
+          // 工作流输入参数名为 input，类型为 Image
+          input: base64Image
         }
       })
     })
+
+    console.log('Coze API request sent')
 
     if (!response.ok) {
       throw new Error(`Coze API error: ${response.status}`)
@@ -69,31 +67,33 @@ export async function recognizeChineseId(base64Image) {
  */
 function parseCozeResult(cozeResult) {
   try {
-    // 扣子工作流的返回格式可能需要根据实际配置调整
+    console.log('Coze API response:', cozeResult)
+
+    // 获取输出数据
     const data = cozeResult.data || cozeResult.output || cozeResult
 
-    // 尝试解析JSON字符串（如果返回的是字符串）
-    let parsed = data
+    // 如果是字符串，尝试解析JSON
+    let outputText = ''
     if (typeof data === 'string') {
       try {
-        parsed = JSON.parse(data)
+        const parsed = JSON.parse(data)
+        outputText = parsed.output || parsed.text || data
       } catch {
-        parsed = data
+        outputText = data
       }
+    } else if (typeof data === 'object') {
+      outputText = data.output || data.text || JSON.stringify(data)
     }
 
-    // 映射字段 - 根据扣子工作流的实际输出调整
+    console.log('OCR text to parse:', outputText)
+
+    // 解析身份证文本格式
+    const fields = parseChineseIdText(outputText)
+
     return {
       success: true,
-      confidence: parsed.confidence || parsed.score || 95,
-      fields: {
-        fullName: parsed.name || parsed.姓名 || parsed.fullName || '',
-        idNumber: parsed.id_number || parsed.身份证号 || parsed.idNumber || parsed.公民身份号码 || '',
-        gender: parseGender(parsed.gender || parsed.性别 || ''),
-        ethnicity: parsed.ethnicity || parsed.民族 || '',
-        dateOfBirth: parsed.birth || parsed.出生 || parsed.dateOfBirth || parsed.birthday || '',
-        address: parsed.address || parsed.住址 || ''
-      },
+      confidence: 95,
+      fields,
       rawData: cozeResult
     }
   } catch (error) {
@@ -104,6 +104,66 @@ function parseCozeResult(cozeResult) {
       fields: {}
     }
   }
+}
+
+/**
+ * 解析中国身份证OCR文本
+ * 格式示例：
+ * "公民身份证号码\n4414222000020619\n住址 广东省...\n出生 2000年2月6日\n性别 男\n民族 汉\n姓名 丘文文"
+ */
+function parseChineseIdText(text) {
+  const fields = {
+    fullName: '',
+    idNumber: '',
+    gender: '',
+    ethnicity: '',
+    dateOfBirth: '',
+    address: ''
+  }
+
+  if (!text) return fields
+
+  // 提取姓名
+  const nameMatch = text.match(/姓名\s*[:：]?\s*([^\n\r]+)/i)
+  if (nameMatch) {
+    fields.fullName = nameMatch[1].trim()
+  }
+
+  // 提取身份证号码 (18位数字，最后一位可能是X)
+  const idMatch = text.match(/([1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx])/i)
+  if (idMatch) {
+    fields.idNumber = idMatch[1].toUpperCase()
+  }
+
+  // 提取性别
+  const genderMatch = text.match(/性别\s*[:：]?\s*(男|女)/i)
+  if (genderMatch) {
+    fields.gender = genderMatch[1] === '男' ? 'MALE' : 'FEMALE'
+  }
+
+  // 提取民族
+  const ethnicityMatch = text.match(/民族\s*[:：]?\s*([^\n\r\s]+)/i)
+  if (ethnicityMatch) {
+    fields.ethnicity = ethnicityMatch[1].trim()
+  }
+
+  // 提取出生日期
+  const birthMatch = text.match(/出生\s*[:：]?\s*(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/i)
+  if (birthMatch) {
+    const year = birthMatch[1]
+    const month = birthMatch[2].padStart(2, '0')
+    const day = birthMatch[3].padStart(2, '0')
+    fields.dateOfBirth = `${year}-${month}-${day}`
+  }
+
+  // 提取住址
+  const addressMatch = text.match(/住址\s*[:：]?\s*([^\n\r]+)/i)
+  if (addressMatch) {
+    fields.address = addressMatch[1].trim()
+  }
+
+  console.log('Parsed fields:', fields)
+  return fields
 }
 
 /**

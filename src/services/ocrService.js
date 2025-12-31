@@ -687,12 +687,17 @@ function parsePassportText(text) {
       const match = text.match(pattern)
       if (match) {
         let nat = match[1].trim().toUpperCase()
-        // 转换常见国籍名称为代码
-        if (nat === 'CHINESE') nat = 'CHN'
+        // 转换为2位国家代码
+        nat = convertToIso2(nat)
         fields.nationality = nat
         break
       }
     }
+  }
+
+  // 如果从MRZ获取的国籍是3位代码，也要转换
+  if (fields.nationality && fields.nationality.length === 3) {
+    fields.nationality = convertToIso2(fields.nationality)
   }
 
   // 提取出生日期 - 格式: 出生日期/Date of birth\n20 MAR 1985
@@ -858,6 +863,64 @@ function normalizeDate(dateStr) {
   }
 
   return dateStr
+}
+
+/**
+ * 将3位ISO国家代码转换为2位代码
+ * 护照MRZ使用3位代码，但表单下拉框使用2位代码
+ */
+function convertToIso2(code) {
+  if (!code) return ''
+
+  // 常见国家代码映射 (ISO 3166-1 alpha-3 to alpha-2)
+  const iso3ToIso2 = {
+    'CHN': 'CN',  // 中国
+    'USA': 'US',  // 美国
+    'GBR': 'GB',  // 英国
+    'DEU': 'DE',  // 德国
+    'FRA': 'FR',  // 法国
+    'JPN': 'JP',  // 日本
+    'KOR': 'KR',  // 韩国
+    'AUS': 'AU',  // 澳大利亚
+    'CAN': 'CA',  // 加拿大
+    'IND': 'IN',  // 印度
+    'PAK': 'PK',  // 巴基斯坦
+    'PHL': 'PH',  // 菲律宾
+    'IDN': 'ID',  // 印度尼西亚
+    'MYS': 'MY',  // 马来西亚
+    'SGP': 'SG',  // 新加坡
+    'TUR': 'TR',  // 土耳其
+    'ITA': 'IT',  // 意大利
+    'ESP': 'ES',  // 西班牙
+    'SAU': 'SA',  // 沙特阿拉伯
+    'ARE': 'AE',  // 阿联酋
+    'KWT': 'KW',  // 科威特
+    'BHR': 'BH',  // 巴林
+    'QAT': 'QA',  // 卡塔尔
+    'OMN': 'OM',  // 阿曼
+    'EGY': 'EG',  // 埃及
+    'JOR': 'JO',  // 约旦
+    'RUS': 'RU',  // 俄罗斯
+    'BRA': 'BR',  // 巴西
+    'MEX': 'MX',  // 墨西哥
+    'THA': 'TH',  // 泰国
+    'VNM': 'VN',  // 越南
+    'NLD': 'NL',  // 荷兰
+    'BEL': 'BE',  // 比利时
+    'CHE': 'CH',  // 瑞士
+    'SWE': 'SE',  // 瑞典
+    'NOR': 'NO',  // 挪威
+    'DNK': 'DK',  // 丹麦
+    'FIN': 'FI',  // 芬兰
+    'POL': 'PL',  // 波兰
+    'NZL': 'NZ',  // 新西兰
+    'ZAF': 'ZA',  // 南非
+    'CHINESE': 'CN',
+    'CHINA': 'CN'
+  }
+
+  const upperCode = code.toUpperCase()
+  return iso3ToIso2[upperCode] || (upperCode.length === 2 ? upperCode : 'OTHER')
 }
 
 /**

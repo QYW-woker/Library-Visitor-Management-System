@@ -176,7 +176,8 @@
       "detail": {
         "title": "访客详情",
         "exitTime": "离馆时间",
-        "registrationId": "登记ID"
+        "registrationId": "登记ID",
+        "markExited": "标记离馆"
       },
       "empty": "未找到访客记录",
       "export": "导出"

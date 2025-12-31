@@ -198,6 +198,13 @@
           </div>
 
           <div class="modal-footer">
+            <button
+              v-if="selectedVisitor?.status === 'ACTIVE'"
+              class="modal-btn modal-btn--primary"
+              @click="handleMarkExited"
+            >
+              {{ t('admin.visitors.detail.markExited') }}
+            </button>
             <button class="modal-btn modal-btn--secondary" @click="closeDetail">
               {{ t('common.close') }}
             </button>
@@ -274,6 +281,15 @@ function openDetail(visitor) {
 function closeDetail() {
   showDetail.value = false
   selectedVisitor.value = null
+}
+
+function handleMarkExited() {
+  if (selectedVisitor.value) {
+    const updated = visitorStore.markVisitorExited(selectedVisitor.value.id)
+    if (updated) {
+      selectedVisitor.value = updated
+    }
+  }
 }
 </script>
 

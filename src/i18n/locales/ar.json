@@ -176,7 +176,8 @@
       "detail": {
         "title": "تفاصيل الزائر",
         "exitTime": "وقت الخروج",
-        "registrationId": "رقم التسجيل"
+        "registrationId": "رقم التسجيل",
+        "markExited": "تسجيل المغادرة"
       },
       "empty": "لم يتم العثور على زوار",
       "export": "تصدير"

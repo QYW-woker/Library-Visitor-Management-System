@@ -156,7 +156,7 @@
     </template>
 
     <!-- Submit Footer -->
-    <footer class="submit-footer">
+    <footer v-if="mode === 'quick' || ocrCompleted" class="submit-footer">
       <button
         class="submit-btn"
         :class="{ 'submit-btn--loading': isSubmitting }"
@@ -538,13 +538,16 @@ async function handleSubmit() {
 .scan-section {
   flex: 1;
   padding: 16px;
+  padding-bottom: 24px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .camera-container {
   flex: 1;
-  min-height: 280px;
+  min-height: 200px;
+  max-height: calc(100vh - 280px);
   border-radius: 16px;
   overflow: hidden;
   background: #1a1a1a;

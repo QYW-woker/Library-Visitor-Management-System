@@ -176,7 +176,8 @@
       "detail": {
         "title": "Visitor Details",
         "exitTime": "Exit Time",
-        "registrationId": "Registration ID"
+        "registrationId": "Registration ID",
+        "markExited": "Mark as Exited"
       },
       "empty": "No visitors found",
       "export": "Export"

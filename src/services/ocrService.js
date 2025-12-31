@@ -640,22 +640,32 @@ function parsePassportText(text) {
 
   // 提取MRZ区域 (护照底部的两行机器可读代码)
   // MRZ格式: P<国籍代码姓<<名<<<...  第二行包含护照号、出生日期等
-  const mrzMatch = text.match(/P[<A-Z0-9]{43,44}[\r\n]+[A-Z0-9<]{43,44}/i)
+  const mrzMatch = text.match(/P[<A-Z]{1,4}[A-Z]+<<[A-Z<]+[\r\n]+[A-Z0-9<]{30,44}/i)
   if (mrzMatch) {
     fields.mrz = mrzMatch[0]
     // 从MRZ提取信息
     const mrzFields = parseMRZ(mrzMatch[0])
     Object.assign(fields, mrzFields)
+    console.log('Parsed from MRZ:', mrzFields)
   }
 
-  // 提取护照号码 - 多种格式
-  // 格式: 字母+数字组合，通常6-9位
+  // 中国护照特定格式: "姓名/Name" 后面跟着中文名和英文名
+  // 格式: 姓名/Name\n中文名\n英文名 或 姓名/Name\n中文名\nENGLISH, NAME
+  if (!fields.fullName) {
+    const chineseNameMatch = text.match(/姓名\/Name[\s\S]*?[\n\r]+([^\n\r]+)[\n\r]+([A-Z][A-Z\s,]+)/i)
+    if (chineseNameMatch) {
+      // 优先使用英文名
+      fields.fullName = chineseNameMatch[2].trim()
+      console.log('Matched Chinese passport name format:', fields.fullName)
+    }
+  }
+
+  // 提取护照号码 - 中国护照格式: 护照号码/Passport No.\nEF1260892
   if (!fields.passportNumber) {
     const passportPatterns = [
-      /(?:Passport\s*(?:No|Number|#)?|护照号码?|رقم\s*(?:الجواز|جواز))[:\s]*([A-Z]{1,2}\d{6,8}|\d{8,9})/i,
-      /\b([A-Z]{1,2}\d{6,8})\b/,  // 常见格式如 AB1234567
-      /\b([A-Z]\d{8})\b/,          // 格式如 E12345678
-      /\b(\d{9})\b/                // 纯数字9位
+      /(?:护照号码?|Passport\s*No\.?)[\/\s\n\r]*([A-Z]{1,2}\d{6,9})/i,
+      /(?:Passport\s*(?:No|Number|#)?)[:\s]*([A-Z]{1,2}\d{6,8})/i,
+      /\b([A-Z]{1,2}\d{7,8})\b/  // 常见格式如 EF1260892
     ]
     for (const pattern of passportPatterns) {
       const match = text.match(pattern)
@@ -666,50 +676,33 @@ function parsePassportText(text) {
     }
   }
 
-  // 提取姓名 - 多语言支持
-  // 英文名: SURNAME/GIVEN NAMES 或 Name: JOHN SMITH
-  const namePatterns = [
-    /(?:Surname|Family\s*Name|姓)[\/\s:：]*([A-Z\s]+)[\r\n]+(?:Given\s*Names?|名)[\/\s:：]*([A-Z\s]+)/i,
-    /(?:Name|Full\s*Name|姓名|الاسم)[:\s：]*([A-Z][A-Za-z\s\-']+)/i,
-    /([A-Z]{2,}(?:\s+[A-Z]{2,})+)/  // 连续大写英文名
-  ]
-  if (!fields.fullName) {
-    for (const pattern of namePatterns) {
-      const match = text.match(pattern)
-      if (match) {
-        if (match[2]) {
-          // Surname + Given Names 格式
-          fields.fullName = `${match[1].trim()} ${match[2].trim()}`
-        } else {
-          fields.fullName = match[1].trim()
-        }
-        break
-      }
-    }
-  }
-
-  // 提取国籍 - 支持国家代码和全称
-  const nationalityPatterns = [
-    /(?:Nationality|国籍|الجنسية)[:\s：]*([A-Z]{2,3}|[A-Za-z\s]+)/i,
-    /(?:Country\s*(?:of\s*)?(?:Issue)?|Code)[:\s：]*([A-Z]{2,3})/i
-  ]
+  // 提取国籍 - 中国护照格式: 国籍/Nationality\n中国/CHINESE 或 Country Code\nCHN
   if (!fields.nationality) {
+    const nationalityPatterns = [
+      /(?:国籍|Nationality)[\/\s\n\r]*(?:中国\/)?([A-Z]{2,10})/i,
+      /(?:Country\s*Code)[\/\s\n\r]*([A-Z]{2,3})/i,
+      /国家\/Country\s*Code[\s\n\r]+([A-Z]{2,3})/i
+    ]
     for (const pattern of nationalityPatterns) {
       const match = text.match(pattern)
       if (match) {
-        fields.nationality = match[1].trim().toUpperCase()
+        let nat = match[1].trim().toUpperCase()
+        // 转换常见国籍名称为代码
+        if (nat === 'CHINESE') nat = 'CHN'
+        fields.nationality = nat
         break
       }
     }
   }
 
-  // 提取出生日期 - 多种格式
-  const dobPatterns = [
-    /(?:Date\s*of\s*Birth|Birth\s*Date|DOB|出生日期|تاريخ\s*الميلاد)[:\s：]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
-    /(?:Date\s*of\s*Birth|DOB|出生)[:\s：]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
-    /(?:Date\s*of\s*Birth|DOB)[:\s：]*(\d{2}\s*[A-Z]{3}\s*\d{4})/i  // 15 JAN 1990
-  ]
+  // 提取出生日期 - 格式: 出生日期/Date of birth\n20 MAR 1985
   if (!fields.dateOfBirth) {
+    const dobPatterns = [
+      /(?:出生日期|Date\s*of\s*birth)[\/\s\n\r]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i,
+      /(?:出生日期|Date\s*of\s*birth)[\/\s\n\r]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
+      /(?:出生日期|Date\s*of\s*birth)[\/\s\n\r]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/i,
+      /(?:DOB|Birth)[:\s]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i
+    ]
     for (const pattern of dobPatterns) {
       const match = text.match(pattern)
       if (match) {
@@ -719,32 +712,50 @@ function parsePassportText(text) {
     }
   }
 
-  // 提取性别
-  const genderPatterns = [
-    /(?:Sex|Gender|性别|الجنس)[:\s：]*(M|F|Male|Female|男|女)/i
-  ]
-  for (const pattern of genderPatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      const g = match[1].toUpperCase()
-      fields.gender = (g === 'M' || g === 'MALE' || g === '男') ? 'MALE' : 'FEMALE'
-      break
+  // 提取性别 - 格式: 性别/Sex\n女/F 或 男/M
+  if (!fields.gender) {
+    const genderPatterns = [
+      /(?:性别|Sex)[\/\s\n\r]*(女|男|F|M)(?:\/[FM])?/i,
+      /(?:Gender)[:\s]*(Male|Female|M|F)/i
+    ]
+    for (const pattern of genderPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        const g = match[1].toUpperCase()
+        fields.gender = (g === 'M' || g === 'MALE' || g === '男') ? 'MALE' : 'FEMALE'
+        break
+      }
     }
   }
 
-  // 提取有效期/过期日期
-  const expiryPatterns = [
-    /(?:Date\s*of\s*Expiry|Expiry|Expiration|Valid\s*Until|有效期至?|انتهاء)[:\s：]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
-    /(?:Expiry|Valid)[:\s：]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
-    /(?:Expiry)[:\s：]*(\d{2}\s*[A-Z]{3}\s*\d{4})/i
-  ]
+  // 提取有效期 - 格式: 有效期限/Date of expiry\n17 1月/JAN 2029
   if (!fields.passportExpiry) {
+    const expiryPatterns = [
+      /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{1,2})\s*(?:\d{1,2}月\/)?([A-Z]{3})\s*(\d{4})/i,
+      /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i,
+      /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
+      /(?:Expiry|Valid\s*Until)[:\s]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i
+    ]
     for (const pattern of expiryPatterns) {
       const match = text.match(pattern)
       if (match) {
-        fields.passportExpiry = normalizeDate(match[1])
+        if (match[3]) {
+          // 格式: 17 1月/JAN 2029 -> 17 JAN 2029
+          fields.passportExpiry = normalizeDate(`${match[1]} ${match[2]} ${match[3]}`)
+        } else {
+          fields.passportExpiry = normalizeDate(match[1])
+        }
         break
       }
+    }
+  }
+
+  // 如果仍然没有提取到姓名，尝试其他模式
+  if (!fields.fullName) {
+    // 尝试从文本中匹配 SURNAME, GIVENNAME 格式
+    const nameMatch = text.match(/\b([A-Z]{2,}),\s*([A-Z]{2,})\b/)
+    if (nameMatch) {
+      fields.fullName = `${nameMatch[1]}, ${nameMatch[2]}`
     }
   }
 

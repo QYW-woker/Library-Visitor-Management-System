@@ -34,6 +34,10 @@
         "title": "زائر سعودي",
         "subtitle": "تسجيل سريع بالاسم ورقم الجوال"
       },
+      "chineseButton": {
+        "title": "زائر صيني",
+        "subtitle": "مسح بطاقة الهوية الصينية"
+      },
       "foreignButton": {
         "title": "زائر أجنبي",
         "subtitle": "يتطلب مسح جواز السفر"
@@ -41,6 +45,7 @@
       "todayStats": {
         "title": "زوار اليوم",
         "saudi": "سعودي",
+        "chinese": "صيني",
         "foreign": "أجنبي",
         "total": "المجموع"
       }
@@ -68,6 +73,58 @@
       "button": {
         "submit": "تسجيل الزائر",
         "scanId": "مسح الهوية الوطنية"
+      }
+    },
+    "chinese": {
+      "title": "تسجيل زائر صيني",
+      "scan": {
+        "title": "مسح بطاقة الهوية",
+        "instruction": "ضع بطاقة الهوية داخل الإطار",
+        "takePhoto": "التقاط صورة",
+        "uploadImage": "رفع صورة",
+        "retake": "إعادة الالتقاط",
+        "usePhoto": "استخدام هذه الصورة"
+      },
+      "ocr": {
+        "processing": "جاري قراءة بطاقة الهوية...",
+        "success": "تمت قراءة بطاقة الهوية بنجاح",
+        "failed": "تعذر قراءة بطاقة الهوية",
+        "manualEntry": "الإدخال يدوياً",
+        "confidence": "نسبة الدقة"
+      },
+      "form": {
+        "fullName": {
+          "label": "الاسم الكامل",
+          "placeholder": "كما هو موضح في بطاقة الهوية"
+        },
+        "idNumber": {
+          "label": "رقم الهوية",
+          "placeholder": "رقم الهوية المكون من 18 رقم"
+        },
+        "gender": {
+          "label": "الجنس",
+          "male": "ذكر",
+          "female": "أنثى"
+        },
+        "ethnicity": {
+          "label": "العرقية",
+          "placeholder": "مثال: هان"
+        },
+        "dateOfBirth": {
+          "label": "تاريخ الميلاد",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "address": {
+          "label": "العنوان",
+          "placeholder": "العنوان المسجل"
+        },
+        "mobileNumber": {
+          "label": "رقم الجوال",
+          "placeholder": "اختياري"
+        }
+      },
+      "button": {
+        "submit": "تسجيل الزائر"
       }
     },
     "foreign": {
@@ -152,6 +209,7 @@
       "filter": {
         "all": "جميع الأنواع",
         "saudi": "زائر سعودي",
+        "chinese": "زائر صيني",
         "foreign": "زائر أجنبي",
         "dateRange": "نطاق التاريخ",
         "from": "من",
@@ -162,6 +220,7 @@
         "fullName": "الاسم الكامل",
         "mobileNumber": "الجوال",
         "passportNumber": "رقم الجواز",
+        "chineseId": "رقم الهوية الصينية",
         "nationality": "الجنسية",
         "visitDate": "تاريخ الزيارة",
         "entryTime": "وقت الدخول",
@@ -190,6 +249,7 @@
     "invalidMobile": "يرجى إدخال رقم جوال سعودي صحيح",
     "invalidNationalId": "يرجى إدخال رقم هوية وطنية صحيح مكون من 10 أرقام",
     "invalidPassport": "يرجى إدخال رقم جواز سفر صحيح",
+    "invalidChineseId": "يرجى إدخال رقم هوية صيني صحيح مكون من 18 رقم",
     "invalidName": "يرجى إدخال اسم صحيح (2-100 حرف)",
     "invalidDate": "يرجى إدخال تاريخ صحيح (YYYY-MM-DD)",
     "passportExpired": "جواز السفر منتهي الصلاحية"

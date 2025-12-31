@@ -23,6 +23,20 @@
         </div>
       </button>
 
+      <!-- Chinese Visitor Button -->
+      <button class="action-btn action-btn--chinese" @click="goToChinese">
+        <div class="action-btn__icon">🇨🇳</div>
+        <div class="action-btn__content">
+          <span class="action-btn__title">{{ t('staff.home.chineseButton.title') }}</span>
+          <span class="action-btn__subtitle">{{ t('staff.home.chineseButton.subtitle') }}</span>
+        </div>
+        <div class="action-btn__arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flip-rtl">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+      </button>
+
       <!-- Foreign Visitor Button (Secondary) -->
       <button class="action-btn action-btn--secondary" @click="goToForeign">
         <div class="action-btn__icon">🌍</div>
@@ -46,6 +60,11 @@
           <span class="stat-item__icon">🇸🇦</span>
           <span class="stat-item__value">{{ stats.saudiVisitors }}</span>
           <span class="stat-item__label">{{ t('staff.home.todayStats.saudi') }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item__icon">🇨🇳</span>
+          <span class="stat-item__value">{{ stats.chineseVisitors }}</span>
+          <span class="stat-item__label">{{ t('staff.home.todayStats.chinese') }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-item__icon">🌍</span>
@@ -85,6 +104,10 @@ onMounted(() => {
 
 function goToSaudi() {
   router.push('/saudi')
+}
+
+function goToChinese() {
+  router.push('/chinese')
 }
 
 function goToForeign() {
@@ -154,6 +177,25 @@ function goToForeign() {
     background: linear-gradient(135deg, #006C35 0%, #00843D 100%);
     color: white;
     box-shadow: 0 8px 24px rgba(0, 108, 53, 0.3);
+
+    .action-btn__subtitle {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  &--chinese {
+    min-height: 80px;
+    background: linear-gradient(135deg, #DE2910 0%, #EE1C25 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(222, 41, 16, 0.25);
+
+    .action-btn__icon {
+      font-size: 28px;
+    }
+
+    .action-btn__title {
+      font-size: 16px;
+    }
 
     .action-btn__subtitle {
       color: rgba(255, 255, 255, 0.85);

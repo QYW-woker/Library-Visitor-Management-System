@@ -21,6 +21,7 @@
         <select v-model="filters.type" class="filter-select" @change="applyFilters">
           <option value="ALL">{{ t('admin.visitors.filter.all') }}</option>
           <option value="SAUDI">{{ t('admin.visitors.filter.saudi') }}</option>
+          <option value="CHINESE">{{ t('admin.visitors.filter.chinese') }}</option>
           <option value="FOREIGN">{{ t('admin.visitors.filter.foreign') }}</option>
         </select>
 
@@ -73,13 +74,13 @@
           >
             <td>
               <span class="visitor-type-badge" :class="`visitor-type-badge--${visitor.visitorType.toLowerCase()}`">
-                {{ visitor.visitorType === 'SAUDI' ? '🇸🇦 Saudi' : '🌍 Foreign' }}
+                {{ getVisitorTypeLabel(visitor.visitorType) }}
               </span>
             </td>
             <td class="name-cell">{{ visitor.fullName }}</td>
             <td class="mono">{{ visitor.mobileNumber || '-' }}</td>
-            <td class="mono">{{ visitor.passportNumber || '-' }}</td>
-            <td>{{ visitor.nationalityName || (visitor.visitorType === 'SAUDI' ? t('nationality.SA') : '-') }}</td>
+            <td class="mono">{{ visitor.passportNumber || visitor.chineseIdNumber || '-' }}</td>
+            <td>{{ getVisitorNationality(visitor) }}</td>
             <td class="mono">{{ visitor.visitDate }}</td>
             <td class="mono">{{ visitor.entryTime }}</td>
             <td>
@@ -141,7 +142,7 @@
             <!-- Visitor Type Badge -->
             <div class="detail-type">
               <span class="visitor-type-badge visitor-type-badge--large" :class="`visitor-type-badge--${selectedVisitor.visitorType.toLowerCase()}`">
-                {{ selectedVisitor.visitorType === 'SAUDI' ? '🇸🇦 Saudi National' : '🌍 Foreign Visitor' }}
+                {{ getVisitorTypeLabelFull(selectedVisitor.visitorType) }}
               </span>
               <span class="status-badge status-badge--large" :class="`status-badge--${selectedVisitor.status.toLowerCase()}`">
                 {{ t(`admin.visitors.status.${selectedVisitor.status.toLowerCase()}`) }}
@@ -175,6 +176,21 @@
                 <span class="detail-value">{{ selectedVisitor.nationalityName || '-' }}</span>
               </div>
 
+              <div v-if="selectedVisitor.visitorType === 'CHINESE' && selectedVisitor.chineseIdNumber" class="detail-item">
+                <label>{{ t('admin.visitors.table.chineseId') }}</label>
+                <span class="detail-value mono">{{ selectedVisitor.chineseIdNumber }}</span>
+              </div>
+
+              <div v-if="selectedVisitor.visitorType === 'CHINESE' && selectedVisitor.ethnicity" class="detail-item">
+                <label>{{ t('staff.chinese.form.ethnicity.label') }}</label>
+                <span class="detail-value">{{ selectedVisitor.ethnicity }}</span>
+              </div>
+
+              <div v-if="selectedVisitor.visitorType === 'CHINESE' && selectedVisitor.address" class="detail-item detail-item--full">
+                <label>{{ t('staff.chinese.form.address.label') }}</label>
+                <span class="detail-value">{{ selectedVisitor.address }}</span>
+              </div>
+
               <div class="detail-item">
                 <label>{{ t('admin.visitors.table.visitDate') }}</label>
                 <span class="detail-value mono">{{ selectedVisitor.visitDate }}</span>
@@ -197,12 +213,12 @@
             </div>
 
             <!-- Document Image -->
-            <div v-if="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl" class="document-image-section">
+            <div v-if="getDocumentImage(selectedVisitor)" class="document-image-section">
               <label class="document-label">{{ t('admin.visitors.detail.documentImage') }}</label>
               <div class="document-image-container" @click="toggleImagePreview">
                 <img
-                  :src="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl"
-                  :alt="selectedVisitor.visitorType === 'SAUDI' ? 'National ID' : 'Passport'"
+                  :src="getDocumentImage(selectedVisitor)"
+                  :alt="getDocumentAlt(selectedVisitor.visitorType)"
                   class="document-image"
                 />
                 <div class="image-overlay">
@@ -236,7 +252,7 @@
         </button>
         <img
           v-if="selectedVisitor"
-          :src="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl"
+          :src="getDocumentImage(selectedVisitor)"
           class="image-preview-img"
           @click.stop
         />
@@ -325,6 +341,46 @@ function handleMarkExited() {
 
 function toggleImagePreview() {
   showImagePreview.value = !showImagePreview.value
+}
+
+function getVisitorTypeLabel(type) {
+  switch (type) {
+    case 'SAUDI': return '🇸🇦 Saudi'
+    case 'CHINESE': return '🇨🇳 Chinese'
+    case 'FOREIGN': return '🌍 Foreign'
+    default: return type
+  }
+}
+
+function getVisitorTypeLabelFull(type) {
+  switch (type) {
+    case 'SAUDI': return '🇸🇦 Saudi National'
+    case 'CHINESE': return '🇨🇳 Chinese Visitor'
+    case 'FOREIGN': return '🌍 Foreign Visitor'
+    default: return type
+  }
+}
+
+function getVisitorNationality(visitor) {
+  if (visitor.nationalityName) return visitor.nationalityName
+  switch (visitor.visitorType) {
+    case 'SAUDI': return t('nationality.SA')
+    case 'CHINESE': return t('nationality.CN')
+    default: return '-'
+  }
+}
+
+function getDocumentImage(visitor) {
+  return visitor.nationalIdImage || visitor.chineseIdImage || visitor.passportImageUrl || null
+}
+
+function getDocumentAlt(type) {
+  switch (type) {
+    case 'SAUDI': return 'National ID'
+    case 'CHINESE': return 'Chinese ID Card'
+    case 'FOREIGN': return 'Passport'
+    default: return 'Document'
+  }
 }
 </script>
 
@@ -475,6 +531,11 @@ function toggleImagePreview() {
   &--saudi {
     background: rgba(0, 108, 53, 0.1);
     color: #006C35;
+  }
+
+  &--chinese {
+    background: rgba(222, 41, 16, 0.1);
+    color: #DE2910;
   }
 
   &--foreign {

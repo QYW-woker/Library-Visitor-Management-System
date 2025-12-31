@@ -34,6 +34,10 @@
         "title": "Saudi National Visitor",
         "subtitle": "Quick registration with name & mobile"
       },
+      "chineseButton": {
+        "title": "Chinese Visitor",
+        "subtitle": "Scan Chinese ID card"
+      },
       "foreignButton": {
         "title": "Foreign Visitor",
         "subtitle": "Passport scan required"
@@ -41,6 +45,7 @@
       "todayStats": {
         "title": "Today's Visitors",
         "saudi": "Saudi",
+        "chinese": "Chinese",
         "foreign": "Foreign",
         "total": "Total"
       }
@@ -68,6 +73,58 @@
       "button": {
         "submit": "Register Visitor",
         "scanId": "Scan National ID"
+      }
+    },
+    "chinese": {
+      "title": "Chinese Visitor Registration",
+      "scan": {
+        "title": "Scan ID Card",
+        "instruction": "Position the ID card within the frame",
+        "takePhoto": "Take Photo",
+        "uploadImage": "Upload Image",
+        "retake": "Retake",
+        "usePhoto": "Use This Photo"
+      },
+      "ocr": {
+        "processing": "Reading ID card...",
+        "success": "ID card read successfully",
+        "failed": "Could not read ID card",
+        "manualEntry": "Enter manually",
+        "confidence": "Confidence"
+      },
+      "form": {
+        "fullName": {
+          "label": "Full Name",
+          "placeholder": "As shown on ID card"
+        },
+        "idNumber": {
+          "label": "ID Number",
+          "placeholder": "18-digit ID number"
+        },
+        "gender": {
+          "label": "Gender",
+          "male": "Male",
+          "female": "Female"
+        },
+        "ethnicity": {
+          "label": "Ethnicity",
+          "placeholder": "e.g. Han"
+        },
+        "dateOfBirth": {
+          "label": "Date of Birth",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "address": {
+          "label": "Address",
+          "placeholder": "Registered address"
+        },
+        "mobileNumber": {
+          "label": "Mobile Number",
+          "placeholder": "Optional"
+        }
+      },
+      "button": {
+        "submit": "Register Visitor"
       }
     },
     "foreign": {
@@ -152,6 +209,7 @@
       "filter": {
         "all": "All Types",
         "saudi": "Saudi National",
+        "chinese": "Chinese Visitor",
         "foreign": "Foreign Visitor",
         "dateRange": "Date Range",
         "from": "From",
@@ -162,6 +220,7 @@
         "fullName": "Full Name",
         "mobileNumber": "Mobile",
         "passportNumber": "Passport No.",
+        "chineseId": "Chinese ID",
         "nationality": "Nationality",
         "visitDate": "Visit Date",
         "entryTime": "Entry Time",
@@ -190,6 +249,7 @@
     "invalidMobile": "Please enter a valid Saudi mobile number",
     "invalidNationalId": "Please enter a valid 10-digit National ID",
     "invalidPassport": "Please enter a valid passport number",
+    "invalidChineseId": "Please enter a valid 18-digit Chinese ID number",
     "invalidName": "Please enter a valid name (2-100 characters)",
     "invalidDate": "Please enter a valid date (YYYY-MM-DD)",
     "passportExpired": "This passport has expired"

@@ -15,6 +15,12 @@ const routes = [
     meta: { title: 'staff.saudi.title' }
   },
   {
+    path: '/chinese',
+    name: 'ChineseEntry',
+    component: () => import('@/views/staff/ChineseEntry.vue'),
+    meta: { title: 'staff.chinese.title' }
+  },
+  {
     path: '/foreign',
     name: 'ForeignEntry',
     component: () => import('@/views/staff/ForeignEntry.vue'),

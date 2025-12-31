@@ -4,6 +4,7 @@
 
 export const VisitorType = {
   SAUDI: 'SAUDI',
+  CHINESE: 'CHINESE',
   FOREIGN: 'FOREIGN'
 }
 
@@ -77,6 +78,12 @@ export function createVisitorObject(data) {
     nationalId: data.nationalId || null,
     nationalIdScanned: data.nationalIdScanned || false,
     nationalIdImage: data.nationalIdImage || null,
+
+    // Chinese fields
+    chineseIdNumber: data.chineseIdNumber || null,
+    chineseIdImage: data.chineseIdImage || null,
+    ethnicity: data.ethnicity || null,
+    address: data.address || null,
 
     // Foreign fields
     passportNumber: data.passportNumber || null,

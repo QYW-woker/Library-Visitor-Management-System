@@ -34,6 +34,10 @@
         "title": "沙特本国访客",
         "subtitle": "快速登记，仅需姓名和手机号"
       },
+      "chineseButton": {
+        "title": "中国访客",
+        "subtitle": "扫描中国居民身份证"
+      },
       "foreignButton": {
         "title": "外国访客",
         "subtitle": "需扫描护照"
@@ -41,6 +45,7 @@
       "todayStats": {
         "title": "今日访客",
         "saudi": "沙特访客",
+        "chinese": "中国访客",
         "foreign": "外国访客",
         "total": "总计"
       }
@@ -68,6 +73,58 @@
       "button": {
         "submit": "登记访客",
         "scanId": "扫描身份证"
+      }
+    },
+    "chinese": {
+      "title": "中国访客登记",
+      "scan": {
+        "title": "扫描身份证",
+        "instruction": "将身份证正面置于框内",
+        "takePhoto": "拍照",
+        "uploadImage": "上传图片",
+        "retake": "重拍",
+        "usePhoto": "使用此照片"
+      },
+      "ocr": {
+        "processing": "正在读取身份证...",
+        "success": "身份证读取成功",
+        "failed": "无法读取身份证",
+        "manualEntry": "手动输入",
+        "confidence": "识别置信度"
+      },
+      "form": {
+        "fullName": {
+          "label": "姓名",
+          "placeholder": "与身份证一致"
+        },
+        "idNumber": {
+          "label": "身份证号码",
+          "placeholder": "18位身份证号"
+        },
+        "gender": {
+          "label": "性别",
+          "male": "男",
+          "female": "女"
+        },
+        "ethnicity": {
+          "label": "民族",
+          "placeholder": "例如：汉族"
+        },
+        "dateOfBirth": {
+          "label": "出生日期",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "address": {
+          "label": "住址",
+          "placeholder": "户籍地址"
+        },
+        "mobileNumber": {
+          "label": "手机号",
+          "placeholder": "选填"
+        }
+      },
+      "button": {
+        "submit": "登记访客"
       }
     },
     "foreign": {
@@ -152,6 +209,7 @@
       "filter": {
         "all": "全部类型",
         "saudi": "沙特访客",
+        "chinese": "中国访客",
         "foreign": "外国访客",
         "dateRange": "日期范围",
         "from": "从",
@@ -162,6 +220,7 @@
         "fullName": "姓名",
         "mobileNumber": "手机号",
         "passportNumber": "护照号",
+        "chineseId": "身份证号",
         "nationality": "国籍",
         "visitDate": "访问日期",
         "entryTime": "入馆时间",
@@ -190,6 +249,7 @@
     "invalidMobile": "请输入有效的沙特手机号",
     "invalidNationalId": "请输入有效的10位身份证号",
     "invalidPassport": "请输入有效的护照号码",
+    "invalidChineseId": "请输入有效的18位身份证号码",
     "invalidName": "请输入有效的姓名（2-100个字符）",
     "invalidDate": "请输入有效的日期（YYYY-MM-DD）",
     "passportExpired": "此护照已过期"

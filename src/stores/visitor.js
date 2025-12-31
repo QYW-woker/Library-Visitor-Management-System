@@ -39,6 +39,7 @@ export const useVisitorStore = defineStore('visitor', () => {
     return {
       totalVisitors: today.length,
       saudiVisitors: today.filter(v => v.visitorType === VisitorType.SAUDI).length,
+      chineseVisitors: today.filter(v => v.visitorType === VisitorType.CHINESE).length,
       foreignVisitors: today.filter(v => v.visitorType === VisitorType.FOREIGN).length,
       currentlyInLibrary: today.filter(v => v.status === VisitorStatus.ACTIVE).length
     }

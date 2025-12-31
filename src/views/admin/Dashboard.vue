@@ -22,6 +22,14 @@
           </div>
         </div>
 
+        <div class="stat-card stat-card--chinese">
+          <div class="stat-card__icon">🇨🇳</div>
+          <div class="stat-card__content">
+            <span class="stat-card__value">{{ stats.chineseVisitors }}</span>
+            <span class="stat-card__label">{{ t('staff.home.todayStats.chinese') }}</span>
+          </div>
+        </div>
+
         <div class="stat-card stat-card--foreign">
           <div class="stat-card__icon">🌍</div>
           <div class="stat-card__content">
@@ -64,7 +72,7 @@
             <tr v-for="visitor in recentVisitors" :key="visitor.id">
               <td>
                 <span class="visitor-type" :class="`visitor-type--${visitor.visitorType.toLowerCase()}`">
-                  {{ visitor.visitorType === 'SAUDI' ? '🇸🇦' : '🌍' }}
+                  {{ getVisitorTypeIcon(visitor.visitorType) }}
                 </span>
               </td>
               <td class="name-cell">{{ visitor.fullName }}</td>
@@ -100,6 +108,15 @@ const recentVisitors = computed(() => visitorStore.getRecentVisitors(5))
 onMounted(() => {
   visitorStore.initDemoData()
 })
+
+function getVisitorTypeIcon(type) {
+  switch (type) {
+    case 'SAUDI': return '🇸🇦'
+    case 'CHINESE': return '🇨🇳'
+    case 'FOREIGN': return '🌍'
+    default: return '👤'
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -168,6 +185,10 @@ onMounted(() => {
 
   &--saudi {
     border-inline-start: 4px solid #006C35;
+  }
+
+  &--chinese {
+    border-inline-start: 4px solid #DE2910;
   }
 
   &--foreign {

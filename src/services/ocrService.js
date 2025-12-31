@@ -434,55 +434,87 @@ function parseSaudiIdText(text) {
 
   // 提取英文姓名 - 居留证格式: 阿拉伯名在上，英文名在下
   // 示例: "جون مواطن ويليامز\nJOHN CITIZEN WILLIAMS"
-  const englishNamePatterns = [
-    // 格式1: 在阿拉伯文之后的英文名 (多个大写单词)
-    /(?:[\u0600-\u06FF\s]+)\n+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)+)/,
-    // 格式2: Name: JOHN CITIZEN
-    /(?:Name|Full\s*Name|الاسم)[:\s]*([A-Z][A-Za-z\s]+)/i,
-    // 格式3: 连续的英文大写字母名字（至少两个单词）
-    /\b([A-Z]{2,}(?:\s+[A-Z]{2,})+)\b/
+
+  // 需要排除的标题词汇
+  const excludeEnglishWords = [
+    'KINGDOM', 'MINISTRY', 'INTERIOR', 'RESIDENCE', 'PERMIT',
+    'SAUDI', 'ARABIA', 'DIRECTORATE', 'PASSPORT', 'DEPT',
+    'NATIONAL', 'IDENTITY', 'CARD'
   ]
 
-  for (const pattern of englishNamePatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      const name = match[1].trim()
-      // 过滤掉明显不是名字的文本
-      if (!name.includes('KINGDOM') && !name.includes('MINISTRY') &&
-          !name.includes('RESIDENCE') && !name.includes('PERMIT') &&
-          !name.includes('INTERIOR') && name.length < 50) {
-        fields.fullName = name
+  function isValidEnglishName(name) {
+    if (!name || name.length < 3 || name.length > 50) return false
+    // 检查是否包含排除词
+    for (const word of excludeEnglishWords) {
+      if (name.toUpperCase().includes(word)) return false
+    }
+    // 名字应该至少有2个单词（姓和名）
+    const words = name.trim().split(/\s+/)
+    if (words.length < 2) return false
+    return true
+  }
+
+  // 方法1: 查找紧跟在阿拉伯名字后面的英文名
+  // 格式: "جون مواطن ويليامز\nJOHN CITIZEN WILLIAMS"
+  const arabicThenEnglishMatch = text.match(/([\u0600-\u06FF]+(?:\s+[\u0600-\u06FF]+)+)\s*\n\s*([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)+)/m)
+  if (arabicThenEnglishMatch) {
+    const arabicName = arabicThenEnglishMatch[1].trim()
+    const englishName = arabicThenEnglishMatch[2].trim()
+
+    // 验证不是标题文本
+    const arabicExclude = ['المملكة', 'العربية', 'السعودية', 'وزارة', 'الداخلية', 'رخصة', 'اقامة']
+    let isArabicLabel = false
+    for (const word of arabicExclude) {
+      if (arabicName.includes(word)) {
+        isArabicLabel = true
+        break
+      }
+    }
+
+    if (!isArabicLabel && isValidEnglishName(englishName)) {
+      fields.fullName = englishName
+      fields.fullNameAr = arabicName
+      console.log('Matched name pattern (Arabic then English):', fields.fullName)
+    }
+  }
+
+  // 方法2: 如果方法1没匹配到，使用全局匹配找所有可能的英文名字
+  if (!fields.fullName) {
+    const allEnglishMatches = text.match(/\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)+)\b/g) || []
+    for (const match of allEnglishMatches) {
+      if (isValidEnglishName(match)) {
+        fields.fullName = match.trim()
+        console.log('Matched name pattern (global search):', fields.fullName)
         break
       }
     }
   }
 
-  // 提取阿拉伯语姓名
-  // 格式: 在英文名之前或者在特定位置
-  const arabicNamePatterns = [
-    // 格式1: 在"RESIDENCE PERMIT"或"رخصة اقامة"之后的阿拉伯名
-    /(?:رخصة\s*اقامة|RESIDENCE\s*PERMIT)\s*\n*([\u0600-\u06FF\s]{4,})/i,
-    // 格式2: 通用阿拉伯名字匹配（排除常见标签）
-    /([\u0600-\u06FF]{2,}(?:\s+[\u0600-\u06FF]{2,})+)/
-  ]
+  // 提取阿拉伯语姓名 (如果还没有在方法1中提取到)
+  if (!fields.fullNameAr) {
+    const arabicExcludeWords = ['المملكة', 'العربية', 'السعودية', 'وزارة', 'الداخلية',
+                                'رخصة', 'اقامة', 'الاسم', 'تاريخ', 'الميلاد', 'الجنسية',
+                                'الديانة', 'الرقم', 'مكان', 'الاصدار', 'صاحب', 'العمل',
+                                'نسخة', 'المديرية', 'العامة', 'للجوازات', 'البينة', 'البلدان',
+                                'المجلس', 'المحاسب', 'الانتهاء', 'الاسلام']
 
-  for (const pattern of arabicNamePatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      const arabicName = match[1].trim()
-      // 过滤掉常见的标签词
-      const excludeWords = ['المملكة', 'العربية', 'السعودية', 'وزارة', 'الداخلية',
-                           'رخصة', 'اقامة', 'الاسم', 'تاريخ', 'الميلاد', 'الجنسية',
-                           'الديانة', 'الرقم', 'مكان', 'الاصدار', 'صاحب', 'العمل', 'نسخة']
+    // 匹配所有阿拉伯语词组
+    const allArabicMatches = text.match(/([\u0600-\u06FF]{2,}(?:\s+[\u0600-\u06FF]{2,})+)/g) || []
+
+    for (const match of allArabicMatches) {
+      const arabicName = match.trim()
+      // 检查是否是有效的名字（不是标签）
       let isLabel = false
-      for (const word of excludeWords) {
+      for (const word of arabicExcludeWords) {
         if (arabicName.includes(word)) {
           isLabel = true
           break
         }
       }
-      if (!isLabel && arabicName.length >= 4) {
+      // 名字通常有2-4个词，长度在4-30个字符之间
+      if (!isLabel && arabicName.length >= 4 && arabicName.length <= 40) {
         fields.fullNameAr = arabicName
+        console.log('Matched Arabic name:', fields.fullNameAr)
         break
       }
     }

@@ -137,6 +137,20 @@ export const useVisitorStore = defineStore('visitor', () => {
     }
   }
 
+  // Clear all data
+  function clearAllData() {
+    visitors.value = []
+    localStorage.removeItem(STORAGE_KEY)
+  }
+
+  // Clear all data and regenerate demo data
+  function resetWithDemoData() {
+    const demoVisitors = generateDemoVisitors()
+    visitors.value = demoVisitors
+    saveToStorage(visitors.value)
+    return demoVisitors.length
+  }
+
   return {
     // State
     visitors,
@@ -154,7 +168,9 @@ export const useVisitorStore = defineStore('visitor', () => {
     searchVisitors,
     filterVisitors,
     getRecentVisitors,
-    initDemoData
+    initDemoData,
+    clearAllData,
+    resetWithDemoData
   }
 })
 
@@ -163,38 +179,80 @@ export const useVisitorStore = defineStore('visitor', () => {
  */
 function generateDemoVisitors() {
   const today = new Date().toISOString().split('T')[0]
-  const names = {
-    saudi: ['محمد أحمد', 'عبدالله العتيبي', 'فهد السعيد', 'سارة الشمري', 'نورة القحطاني'],
-    foreign: ['John Smith', 'Maria Garcia', 'Ahmed Hassan', 'Li Wei', 'Yuki Tanaka']
-  }
-
   const visitors = []
 
-  // Add Saudi visitors
-  names.saudi.forEach((name, i) => {
-    visitors.push(createVisitorObject({
+  // Saudi visitors
+  const saudiNames = [
+    { name: 'محمد أحمد الغامدي', mobile: '501234567', id: '1087654321' },
+    { name: 'عبدالله العتيبي', mobile: '551234567', id: '1098765432' },
+    { name: 'فهد السعيد', mobile: '561234567', id: '1076543210' },
+    { name: 'سارة الشمري', mobile: '541234567', id: '2087654321' },
+    { name: 'نورة القحطاني', mobile: '591234567', id: '2098765432' }
+  ]
+
+  saudiNames.forEach((item, i) => {
+    const visitor = createVisitorObject({
       visitorType: VisitorType.SAUDI,
-      fullName: name,
-      mobileNumber: `+9665${String(i + 1).padStart(8, '0')}`,
-      nationalId: `1${String(Math.random()).slice(2, 11)}`
-    }))
+      fullName: item.name,
+      mobileNumber: `+966${item.mobile}`,
+      nationalId: item.id
+    })
+    // Make some visitors already exited
+    if (i >= 3) {
+      visitor.status = VisitorStatus.EXITED
+      visitor.exitTime = '16:30:00'
+    }
+    visitors.push(visitor)
   })
 
-  // Add Foreign visitors
-  const nationalities = ['US', 'EG', 'CN', 'JP', 'GB']
-  const nationalityNames = ['United States', 'Egypt', 'China', 'Japan', 'United Kingdom']
+  // Chinese visitors
+  const chineseVisitors = [
+    { name: '张伟', id: '110101199003076543', gender: 'MALE' },
+    { name: '李娜', id: '310101198812123456', gender: 'FEMALE' },
+    { name: '王芳', id: '440106199505054321', gender: 'FEMALE' }
+  ]
 
-  names.foreign.forEach((name, i) => {
-    visitors.push(createVisitorObject({
+  chineseVisitors.forEach((item, i) => {
+    const visitor = createVisitorObject({
+      visitorType: VisitorType.CHINESE,
+      fullName: item.name,
+      chineseIdNumber: item.id,
+      gender: item.gender,
+      ocrUsed: true,
+      ocrConfidence: 90 + Math.floor(Math.random() * 10)
+    })
+    if (i >= 2) {
+      visitor.status = VisitorStatus.EXITED
+      visitor.exitTime = '15:45:00'
+    }
+    visitors.push(visitor)
+  })
+
+  // Foreign visitors
+  const foreignVisitors = [
+    { name: 'John Smith', passport: 'US12345678', nationality: 'US', nationalityName: 'United States', gender: 'MALE' },
+    { name: 'Emily Johnson', passport: 'GB87654321', nationality: 'GB', nationalityName: 'United Kingdom', gender: 'FEMALE' },
+    { name: 'Yuki Tanaka', passport: 'JP98765432', nationality: 'JP', nationalityName: 'Japan', gender: 'FEMALE' },
+    { name: 'Ahmed Hassan', passport: 'EG11223344', nationality: 'EG', nationalityName: 'Egypt', gender: 'MALE' },
+    { name: 'Maria Garcia', passport: 'ES55667788', nationality: 'ES', nationalityName: 'Spain', gender: 'FEMALE' }
+  ]
+
+  foreignVisitors.forEach((item, i) => {
+    const visitor = createVisitorObject({
       visitorType: VisitorType.FOREIGN,
-      fullName: name,
-      passportNumber: `${nationalities[i]}${String(Math.random()).slice(2, 9)}`,
-      nationality: nationalities[i],
-      nationalityName: nationalityNames[i],
-      gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
+      fullName: item.name,
+      passportNumber: item.passport,
+      nationality: item.nationality,
+      nationalityName: item.nationalityName,
+      gender: item.gender,
       ocrUsed: true,
       ocrConfidence: 85 + Math.floor(Math.random() * 15)
-    }))
+    })
+    if (i >= 3) {
+      visitor.status = VisitorStatus.EXITED
+      visitor.exitTime = '17:00:00'
+    }
+    visitors.push(visitor)
   })
 
   return visitors

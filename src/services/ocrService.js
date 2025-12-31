@@ -390,13 +390,18 @@ function parseSaudiCozeResult(cozeResult) {
 }
 
 /**
- * 解析沙特身份证OCR文本
- * 沙特身份证包含以下字段：
+ * 解析沙特身份证/居留证OCR文本
+ * 支持以下证件类型:
+ * - 沙特国民身份证 (National ID / بطاقة الهوية الوطنية)
+ * - 沙特居留证 (Residence Permit / Iqama / رخصة اقامة)
+ *
+ * 包含字段：
  * - 姓名 (阿拉伯语和英语)
- * - 身份证号 (10位数字，以1或2开头)
+ * - 身份证/居留证号 (10位数字，以1或2开头)
  * - 出生日期 (回历格式)
  * - 证件有效期 (回历格式)
  * - 国籍
+ * - 职业
  */
 function parseSaudiIdText(text) {
   const fields = {
@@ -405,39 +410,81 @@ function parseSaudiIdText(text) {
     nationalId: '',
     dateOfBirth: '',
     expiryDate: '',
-    nationality: ''
+    nationality: '',
+    occupation: ''
   }
 
   if (!text) return fields
 
-  // 提取沙特身份证号 (10位数字，以1或2开头)
-  const idMatch = text.match(/\b([12]\d{9})\b/)
-  if (idMatch) {
-    fields.nationalId = idMatch[1]
+  console.log('Raw Saudi ID OCR text:', text)
+
+  // 提取沙特身份证/居留证号 (10位数字，以1或2开头)
+  // 支持格式: "الرقم 2323689691" 或 直接10位数字
+  const idPatterns = [
+    /(?:الرقم|ID|Iqama\s*No|Resident\s*ID)[:\s]*([12]\d{9})/i,
+    /\b([12]\d{9})\b/
+  ]
+  for (const pattern of idPatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      fields.nationalId = match[1]
+      break
+    }
   }
 
-  // 提取英文姓名 - 多种格式
-  // 格式1: "Name: MOHAMMED ABDULLAH"
-  // 格式2: "Full Name\nMOHAMMED ABDULLAH"
-  // 格式3: 连续的英文大写字母名字
-  let nameMatch = text.match(/(?:Name|Full\s*Name|الاسم)[:\s]*([A-Z][A-Za-z\s]+)/i)
-  if (nameMatch) {
-    fields.fullName = nameMatch[1].trim()
-  } else {
-    // 尝试匹配大写英文名字（至少两个单词）
-    const englishNameMatch = text.match(/\b([A-Z]{2,}(?:\s+[A-Z]{2,})+)\b/)
-    if (englishNameMatch) {
-      fields.fullName = englishNameMatch[1].trim()
+  // 提取英文姓名 - 居留证格式: 阿拉伯名在上，英文名在下
+  // 示例: "جون مواطن ويليامز\nJOHN CITIZEN WILLIAMS"
+  const englishNamePatterns = [
+    // 格式1: 在阿拉伯文之后的英文名 (多个大写单词)
+    /(?:[\u0600-\u06FF\s]+)\n+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)+)/,
+    // 格式2: Name: JOHN CITIZEN
+    /(?:Name|Full\s*Name|الاسم)[:\s]*([A-Z][A-Za-z\s]+)/i,
+    // 格式3: 连续的英文大写字母名字（至少两个单词）
+    /\b([A-Z]{2,}(?:\s+[A-Z]{2,})+)\b/
+  ]
+
+  for (const pattern of englishNamePatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      const name = match[1].trim()
+      // 过滤掉明显不是名字的文本
+      if (!name.includes('KINGDOM') && !name.includes('MINISTRY') &&
+          !name.includes('RESIDENCE') && !name.includes('PERMIT') &&
+          !name.includes('INTERIOR') && name.length < 50) {
+        fields.fullName = name
+        break
+      }
     }
   }
 
   // 提取阿拉伯语姓名
-  const arabicNameMatch = text.match(/[\u0600-\u06FF\s]{4,}/)
-  if (arabicNameMatch) {
-    // 过滤掉常见的标签词
-    const arabicName = arabicNameMatch[0].trim()
-    if (!arabicName.includes('الاسم') && !arabicName.includes('تاريخ')) {
-      fields.fullNameAr = arabicName
+  // 格式: 在英文名之前或者在特定位置
+  const arabicNamePatterns = [
+    // 格式1: 在"RESIDENCE PERMIT"或"رخصة اقامة"之后的阿拉伯名
+    /(?:رخصة\s*اقامة|RESIDENCE\s*PERMIT)\s*\n*([\u0600-\u06FF\s]{4,})/i,
+    // 格式2: 通用阿拉伯名字匹配（排除常见标签）
+    /([\u0600-\u06FF]{2,}(?:\s+[\u0600-\u06FF]{2,})+)/
+  ]
+
+  for (const pattern of arabicNamePatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      const arabicName = match[1].trim()
+      // 过滤掉常见的标签词
+      const excludeWords = ['المملكة', 'العربية', 'السعودية', 'وزارة', 'الداخلية',
+                           'رخصة', 'اقامة', 'الاسم', 'تاريخ', 'الميلاد', 'الجنسية',
+                           'الديانة', 'الرقم', 'مكان', 'الاصدار', 'صاحب', 'العمل', 'نسخة']
+      let isLabel = false
+      for (const word of excludeWords) {
+        if (arabicName.includes(word)) {
+          isLabel = true
+          break
+        }
+      }
+      if (!isLabel && arabicName.length >= 4) {
+        fields.fullNameAr = arabicName
+        break
+      }
     }
   }
 
@@ -446,33 +493,70 @@ function parseSaudiIdText(text) {
     fields.fullName = fields.fullNameAr
   }
 
-  // 提取日期 - 回历格式 (DD/MM/YYYY 或 YYYY/MM/DD)
-  const dateMatches = text.match(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/g) || []
-  const hijriDateMatches = text.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/g) || []
+  // 提取日期 - 回历格式
+  // 居留证格式: "الميلاد 1435/08/26" 或 "1987/04/08"
+  const allDates = []
 
-  const allDates = [...dateMatches, ...hijriDateMatches]
+  // 格式1: YYYY/MM/DD (回历年份通常是14xx)
+  const hijriDates = text.match(/\b(1[34]\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/g) || []
+  // 格式2: 公历 YYYY/MM/DD (19xx 或 20xx)
+  const gregorianDates = text.match(/\b(19|20\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/g) || []
+  // 格式3: DD/MM/YYYY
+  const otherDates = text.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/g) || []
 
-  // 尝试识别出生日期和有效期
-  // 出生日期通常在 "Date of Birth" 或 "تاريخ الميلاد" 后面
-  const dobMatch = text.match(/(?:Date\s*of\s*Birth|Birth\s*Date|تاريخ\s*الميلاد|الميلاد)[:\s]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/i)
+  allDates.push(...hijriDates, ...gregorianDates, ...otherDates)
+
+  // 提取出生日期 - "الميلاد" 后面
+  const dobMatch = text.match(/(?:الميلاد|Date\s*of\s*Birth|Birth)[:\s]*(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i)
   if (dobMatch) {
     fields.dateOfBirth = dobMatch[1]
   } else if (allDates.length > 0) {
-    fields.dateOfBirth = allDates[0]
+    // 取第一个看起来像出生日期的（可能是公历年份19xx）
+    for (const date of allDates) {
+      if (date.includes('19') || date.includes('198') || date.includes('199')) {
+        fields.dateOfBirth = date
+        break
+      }
+    }
+    if (!fields.dateOfBirth) {
+      fields.dateOfBirth = allDates[0]
+    }
   }
 
-  // 提取有效期
-  const expiryMatch = text.match(/(?:Expiry|Expiration|انتهاء|تاريخ\s*الانتهاء|صالحة)[:\s]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/i)
+  // 提取有效期 - "الانتهاء" 后面
+  const expiryMatch = text.match(/(?:الانتهاء|Expiry|Expiration|انتهاء|صالحة)[:\s]*(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i)
   if (expiryMatch) {
     fields.expiryDate = expiryMatch[1]
   } else if (allDates.length > 1) {
-    fields.expiryDate = allDates[1]
+    // 有效期通常是回历年份 (14xx)
+    for (const date of allDates) {
+      if (date.includes('14') && date !== fields.dateOfBirth) {
+        fields.expiryDate = date
+        break
+      }
+    }
+    if (!fields.expiryDate && allDates[1] !== fields.dateOfBirth) {
+      fields.expiryDate = allDates[1]
+    }
   }
 
-  // 提取国籍
-  const nationalityMatch = text.match(/(?:Nationality|الجنسية)[:\s]*([\u0600-\u06FFa-zA-Z\s]+)/i)
-  if (nationalityMatch) {
-    fields.nationality = nationalityMatch[1].trim()
+  // 提取国籍 - "الجنسية" 后面
+  const nationalityPatterns = [
+    /(?:الجنسية|Nationality)[:\s]*([\u0600-\u06FF]+)/i,
+    /(?:الجنسية|Nationality)[:\s]*([A-Za-z]+)/i
+  ]
+  for (const pattern of nationalityPatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      fields.nationality = match[1].trim()
+      break
+    }
+  }
+
+  // 提取职业 - "صاحب العمل" 或 "محاسب" 等
+  const occupationMatch = text.match(/(?:صاحب\s*العمل|Occupation|المهنة|الوظيفة)[:\s]*([\u0600-\u06FFA-Za-z\s]+)/i)
+  if (occupationMatch) {
+    fields.occupation = occupationMatch[1].trim()
   }
 
   console.log('Parsed Saudi ID fields:', fields)

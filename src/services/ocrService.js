@@ -49,11 +49,13 @@ async function uploadImageToCoze(base64Image) {
   const result = await response.json()
   console.log('Coze file upload response:', result)
 
-  if (result.code !== 0 || !result.data?.id) {
+  if (result.code !== 0 || !result.data) {
     throw new Error(`File upload failed: ${result.msg || 'Unknown error'}`)
   }
 
-  return result.data.id
+  // 返回文件信息（包含URL和file_id）
+  console.log('Uploaded file info:', result.data)
+  return result.data
 }
 
 /**
@@ -70,19 +72,21 @@ export async function recognizeChineseId(base64Image) {
   try {
     console.log('Step 1: Uploading image to Coze...')
 
-    // 先上传图片获取file_id
-    const fileId = await uploadImageToCoze(base64Image)
-    console.log('File uploaded, file_id:', fileId)
+    // 先上传图片获取文件信息
+    const fileInfo = await uploadImageToCoze(base64Image)
+    console.log('File uploaded:', fileInfo)
+
+    // 获取文件URL - 工作流的Image类型需要URL字符串
+    const imageUrl = fileInfo.url || `https://api.coze.cn/v1/files/${fileInfo.id}/content`
+    console.log('Image URL for workflow:', imageUrl)
 
     console.log('Step 2: Calling workflow API...')
 
-    // 使用file_id调用工作流
+    // 直接传递URL字符串给input参数
     const requestBody = {
       workflow_id: COZE_CONFIG.workflowId,
       parameters: {
-        input: {
-          file_id: fileId
-        }
+        input: imageUrl
       }
     }
 

@@ -649,6 +649,21 @@ function parsePassportText(text) {
     console.log('Parsed from MRZ:', mrzFields)
   }
 
+  // 美国护照卡格式: Surname + Given Names 分开显示
+  // 格式: Surname\nTRAVELER\nGiven Names\nHAPPY
+  if (!fields.fullName) {
+    const surnameMatch = text.match(/Surname[\s\n\r]+([A-Z][A-Za-z\-']+)/i)
+    const givenNamesMatch = text.match(/Given\s*Names?[\s\n\r]+([A-Z][A-Za-z\-'\s]+)/i)
+    if (surnameMatch && givenNamesMatch) {
+      fields.fullName = `${surnameMatch[1].trim()} ${givenNamesMatch[1].trim()}`
+      console.log('Matched US passport name format:', fields.fullName)
+    } else if (surnameMatch) {
+      fields.fullName = surnameMatch[1].trim()
+    } else if (givenNamesMatch) {
+      fields.fullName = givenNamesMatch[1].trim()
+    }
+  }
+
   // 中国护照特定格式: "姓名/Name" 后面跟着中文名和英文名
   // 格式: 姓名/Name\n中文名\n英文名 或 姓名/Name\n中文名\nENGLISH, NAME
   if (!fields.fullName) {
@@ -660,12 +675,17 @@ function parsePassportText(text) {
     }
   }
 
-  // 提取护照号码 - 中国护照格式: 护照号码/Passport No.\nEF1260892
+  // 提取护照号码 - 多种格式支持
   if (!fields.passportNumber) {
     const passportPatterns = [
+      // 美国护照卡: Passport Card No.\nC03004786 或 Passport Card no.\nC03004786
+      /(?:Passport\s*Card\s*(?:No|Number|#)?\.?)[:\s\n\r]*([A-Z]?\d{8,9})/i,
+      // 中国护照: 护照号码/Passport No.\nEF1260892
       /(?:护照号码?|Passport\s*No\.?)[\/\s\n\r]*([A-Z]{1,2}\d{6,9})/i,
       /(?:Passport\s*(?:No|Number|#)?)[:\s]*([A-Z]{1,2}\d{6,8})/i,
-      /\b([A-Z]{1,2}\d{7,8})\b/  // 常见格式如 EF1260892
+      /\b([A-Z]{1,2}\d{7,8})\b/,  // 常见格式如 EF1260892
+      /\b([A-Z]\d{8})\b/,  // 格式如 C03004786
+      /\b(\d{9})\b/  // 纯数字9位
     ]
     for (const pattern of passportPatterns) {
       const match = text.match(pattern)
@@ -733,9 +753,12 @@ function parsePassportText(text) {
     }
   }
 
-  // 提取有效期 - 格式: 有效期限/Date of expiry\n17 1月/JAN 2029
+  // 提取有效期 - 多种格式支持
   if (!fields.passportExpiry) {
     const expiryPatterns = [
+      // 美国护照卡: Expires On\n29 NOV 2019
+      /(?:Expires?\s*On|Expiration)[:\s\n\r]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i,
+      // 中国护照: 有效期限/Date of expiry\n17 1月/JAN 2029
       /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{1,2})\s*(?:\d{1,2}月\/)?([A-Z]{3})\s*(\d{4})/i,
       /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{1,2}\s*[A-Z]{3}\s*\d{4})/i,
       /(?:有效期限?|Date\s*of\s*expiry)[\/\s\n\r]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,

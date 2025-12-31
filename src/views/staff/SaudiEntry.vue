@@ -387,7 +387,8 @@ async function handleSubmit() {
       fullName: form.value.fullName.trim(),
       mobileNumber: formatMobileStorage(mobile),
       nationalId: form.value.nationalId || undefined,
-      nationalIdScanned: mode.value === 'scan' && ocrCompleted.value
+      nationalIdScanned: mode.value === 'scan' && ocrCompleted.value,
+      nationalIdImage: mode.value === 'scan' && capturedImage.value ? capturedImage.value : undefined
     })
 
     router.push(`/success/${visitor.id}`)

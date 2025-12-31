@@ -177,7 +177,9 @@
         "title": "访客详情",
         "exitTime": "离馆时间",
         "registrationId": "登记ID",
-        "markExited": "标记离馆"
+        "markExited": "标记离馆",
+        "documentImage": "证件照片",
+        "clickToEnlarge": "点击放大"
       },
       "empty": "未找到访客记录",
       "export": "导出"

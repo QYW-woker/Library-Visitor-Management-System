@@ -177,7 +177,9 @@
         "title": "Visitor Details",
         "exitTime": "Exit Time",
         "registrationId": "Registration ID",
-        "markExited": "Mark as Exited"
+        "markExited": "Mark as Exited",
+        "documentImage": "Document Image",
+        "clickToEnlarge": "Click to enlarge"
       },
       "empty": "No visitors found",
       "export": "Export"

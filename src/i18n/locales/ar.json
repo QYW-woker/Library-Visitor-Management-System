@@ -177,7 +177,9 @@
         "title": "تفاصيل الزائر",
         "exitTime": "وقت الخروج",
         "registrationId": "رقم التسجيل",
-        "markExited": "تسجيل المغادرة"
+        "markExited": "تسجيل المغادرة",
+        "documentImage": "صورة الوثيقة",
+        "clickToEnlarge": "انقر للتكبير"
       },
       "empty": "لم يتم العثور على زوار",
       "export": "تصدير"

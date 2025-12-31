@@ -76,6 +76,7 @@ export function createVisitorObject(data) {
     // Saudi fields
     nationalId: data.nationalId || null,
     nationalIdScanned: data.nationalIdScanned || false,
+    nationalIdImage: data.nationalIdImage || null,
 
     // Foreign fields
     passportNumber: data.passportNumber || null,

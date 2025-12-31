@@ -195,6 +195,21 @@
                 <span class="detail-value mono small">{{ selectedVisitor.id }}</span>
               </div>
             </div>
+
+            <!-- Document Image -->
+            <div v-if="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl" class="document-image-section">
+              <label class="document-label">{{ t('admin.visitors.detail.documentImage') }}</label>
+              <div class="document-image-container" @click="toggleImagePreview">
+                <img
+                  :src="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl"
+                  :alt="selectedVisitor.visitorType === 'SAUDI' ? 'National ID' : 'Passport'"
+                  class="document-image"
+                />
+                <div class="image-overlay">
+                  <span>🔍 {{ t('admin.visitors.detail.clickToEnlarge') }}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -210,6 +225,21 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Full Screen Image Preview -->
+      <div v-if="showImagePreview" class="image-preview-overlay" @click="showImagePreview = false">
+        <button class="image-preview-close" @click.stop="showImagePreview = false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+        <img
+          v-if="selectedVisitor"
+          :src="selectedVisitor.nationalIdImage || selectedVisitor.passportImageUrl"
+          class="image-preview-img"
+          @click.stop
+        />
       </div>
     </Teleport>
   </div>
@@ -236,6 +266,7 @@ const pageSize = 10
 // Detail modal state
 const showDetail = ref(false)
 const selectedVisitor = ref(null)
+const showImagePreview = ref(false)
 
 const filteredVisitors = computed(() => {
   return visitorStore.filterVisitors({
@@ -290,6 +321,10 @@ function handleMarkExited() {
       selectedVisitor.value = updated
     }
   }
+}
+
+function toggleImagePreview() {
+  showImagePreview.value = !showImagePreview.value
 }
 </script>
 
@@ -679,6 +714,96 @@ function handleMarkExited() {
       opacity: 0.9;
     }
   }
+}
+
+// Document Image
+.document-image-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $color-border-light;
+}
+
+.document-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.document-image-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #f5f5f5;
+
+  &:hover .image-overlay {
+    opacity: 1;
+  }
+}
+
+.document-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  span {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Full Screen Image Preview
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.image-preview-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.image-preview-img {
+  max-width: 90%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 // Responsive

@@ -12,6 +12,7 @@
     "back": "返回",
     "save": "保存",
     "delete": "删除",
+    "close": "关闭",
     "search": "搜索",
     "filter": "筛选",
     "reset": "重置",
@@ -171,6 +172,11 @@
         "active": "在馆",
         "exited": "已离开",
         "cancelled": "已取消"
+      },
+      "detail": {
+        "title": "访客详情",
+        "exitTime": "离馆时间",
+        "registrationId": "登记ID"
       },
       "empty": "未找到访客记录",
       "export": "导出"

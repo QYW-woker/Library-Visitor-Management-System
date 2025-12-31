@@ -12,6 +12,7 @@
     "back": "Back",
     "save": "Save",
     "delete": "Delete",
+    "close": "Close",
     "search": "Search",
     "filter": "Filter",
     "reset": "Reset",
@@ -171,6 +172,11 @@
         "active": "In Library",
         "exited": "Exited",
         "cancelled": "Cancelled"
+      },
+      "detail": {
+        "title": "Visitor Details",
+        "exitTime": "Exit Time",
+        "registrationId": "Registration ID"
       },
       "empty": "No visitors found",
       "export": "Export"

@@ -652,10 +652,14 @@ function parsePassportText(text) {
   // 美国护照卡格式: Surname + Given Names 分开显示
   // 格式: Surname\nTRAVELER\nGiven Names\nHAPPY
   if (!fields.fullName) {
+    // 匹配Surname后的单词（不含空格）
     const surnameMatch = text.match(/Surname[\s\n\r]+([A-Z][A-Za-z\-']+)/i)
-    const givenNamesMatch = text.match(/Given\s*Names?[\s\n\r]+([A-Z][A-Za-z\-'\s]+)/i)
+    // Given Names 后只匹配单个单词，不匹配包含空格的后续内容
+    const givenNamesMatch = text.match(/Given\s*Names?[\s\n\r]+([A-Z][A-Za-z\-']+)/i)
     if (surnameMatch && givenNamesMatch) {
-      fields.fullName = `${surnameMatch[1].trim()} ${givenNamesMatch[1].trim()}`
+      const surname = surnameMatch[1].trim()
+      const givenNames = givenNamesMatch[1].trim()
+      fields.fullName = `${surname} ${givenNames}`
       console.log('Matched US passport name format:', fields.fullName)
     } else if (surnameMatch) {
       fields.fullName = surnameMatch[1].trim()

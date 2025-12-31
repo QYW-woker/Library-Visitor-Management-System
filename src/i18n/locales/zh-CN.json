@@ -79,11 +79,15 @@
       "title": "中国访客登记",
       "scan": {
         "title": "扫描身份证",
+        "idCard": "身份证",
         "instruction": "将身份证正面置于框内",
         "takePhoto": "拍照",
         "uploadImage": "上传图片",
         "retake": "重拍",
         "usePhoto": "使用此照片"
+      },
+      "validation": {
+        "invalidId": "请输入有效的18位身份证号码"
       },
       "ocr": {
         "processing": "正在读取身份证...",

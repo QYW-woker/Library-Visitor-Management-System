@@ -79,11 +79,15 @@
       "title": "Chinese Visitor Registration",
       "scan": {
         "title": "Scan ID Card",
+        "idCard": "ID Card",
         "instruction": "Position the ID card within the frame",
         "takePhoto": "Take Photo",
         "uploadImage": "Upload Image",
         "retake": "Retake",
         "usePhoto": "Use This Photo"
+      },
+      "validation": {
+        "invalidId": "Please enter a valid 18-digit Chinese ID number"
       },
       "ocr": {
         "processing": "Reading ID card...",

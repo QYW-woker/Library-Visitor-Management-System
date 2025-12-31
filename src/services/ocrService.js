@@ -1,20 +1,20 @@
 /**
- * OCR Service using Coze Bot API
- * 扣子智能体OCR服务
+ * OCR Service using Coze Workflow API
+ * 扣子工作流OCR服务
  */
 
-// Coze Bot API configuration
+// Coze Workflow API configuration
 const COZE_CONFIG = {
-  // 扣子智能体API地址
-  apiUrl: 'https://api.coze.cn/v3/chat',
-  // 智能体ID
-  botId: import.meta.env.VITE_COZE_BOT_ID || '7589910553196937257',
+  // 扣子工作流API地址
+  apiUrl: 'https://api.coze.cn/v1/workflow/run',
+  // 工作流ID
+  workflowId: import.meta.env.VITE_COZE_WORKFLOW_ID || '7589912153117851683',
   // API密钥
   apiKey: import.meta.env.VITE_COZE_API_KEY || ''
 }
 
 /**
- * 将Base64图片发送到扣子智能体进行OCR识别
+ * 将Base64图片发送到扣子工作流进行OCR识别
  * @param {string} base64Image - Base64编码的图片
  * @returns {Promise<object>} OCR识别结果
  */
@@ -25,10 +25,7 @@ export async function recognizeChineseId(base64Image) {
   }
 
   try {
-    console.log('Sending request to Coze Bot API...')
-
-    // 生成唯一用户ID
-    const userId = 'visitor_' + Date.now()
+    console.log('Sending request to Coze Workflow API...')
 
     const response = await fetch(COZE_CONFIG.apiUrl, {
       method: 'POST',
@@ -37,25 +34,14 @@ export async function recognizeChineseId(base64Image) {
         'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
       },
       body: JSON.stringify({
-        bot_id: COZE_CONFIG.botId,
-        user_id: userId,
-        stream: false,
-        auto_save_history: true,
-        additional_messages: [
-          {
-            role: 'user',
-            content: '请识别这张中国身份证图片，提取姓名、身份证号、性别、民族、出生日期、住址信息。',
-            content_type: 'object_string',
-            type: 'question',
-            extra: {
-              image_list: [base64Image]
-            }
-          }
-        ]
+        workflow_id: COZE_CONFIG.workflowId,
+        parameters: {
+          input: base64Image
+        }
       })
     })
 
-    console.log('Coze Bot API response status:', response.status)
+    console.log('Coze Workflow API response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -64,7 +50,7 @@ export async function recognizeChineseId(base64Image) {
     }
 
     const result = await response.json()
-    console.log('Coze Bot API response:', result)
+    console.log('Coze Workflow API response:', result)
 
     // 解析扣子返回的结果
     return parseCozeResult(result)
@@ -79,7 +65,7 @@ export async function recognizeChineseId(base64Image) {
 }
 
 /**
- * 解析扣子智能体返回的结果
+ * 解析扣子工作流返回的结果
  * @param {object} cozeResult - 扣子API返回的原始结果
  * @returns {object} 标准化的OCR结果
  */
@@ -87,28 +73,26 @@ function parseCozeResult(cozeResult) {
   try {
     console.log('Parsing Coze result:', cozeResult)
 
-    // 获取回复内容
+    // 获取输出数据 - 工作流返回格式
     let outputText = ''
 
-    // v3 API 返回格式
-    if (cozeResult.data && cozeResult.data.messages) {
-      const assistantMsg = cozeResult.data.messages.find(m => m.role === 'assistant' && m.type === 'answer')
-      if (assistantMsg) {
-        outputText = assistantMsg.content || ''
+    // 工作流API返回格式: { code: 0, data: "..." } 或 { code: 0, data: { output: "..." } }
+    if (cozeResult.code === 0 && cozeResult.data) {
+      const data = cozeResult.data
+
+      if (typeof data === 'string') {
+        // 尝试解析JSON字符串
+        try {
+          const parsed = JSON.parse(data)
+          outputText = parsed.output || parsed.text || data
+        } catch {
+          outputText = data
+        }
+      } else if (typeof data === 'object') {
+        outputText = data.output || data.text || JSON.stringify(data)
       }
-    }
-    // 兼容其他格式
-    else if (cozeResult.messages) {
-      const assistantMsg = cozeResult.messages.find(m => m.role === 'assistant')
-      if (assistantMsg) {
-        outputText = assistantMsg.content || ''
-      }
-    }
-    else if (cozeResult.data) {
+    } else if (cozeResult.data) {
       outputText = typeof cozeResult.data === 'string' ? cozeResult.data : JSON.stringify(cozeResult.data)
-    }
-    else if (cozeResult.answer) {
-      outputText = cozeResult.answer
     }
 
     console.log('OCR text to parse:', outputText)
@@ -230,8 +214,8 @@ export function isOcrConfigured() {
 export function getOcrStatus() {
   return {
     configured: isOcrConfigured(),
-    provider: 'Coze Bot',
-    botId: COZE_CONFIG.botId ? '已配置' : '未配置',
+    provider: 'Coze Workflow',
+    workflowId: COZE_CONFIG.workflowId ? '已配置' : '未配置',
     apiKey: COZE_CONFIG.apiKey ? '已配置' : '未配置'
   }
 }

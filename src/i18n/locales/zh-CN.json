@@ -102,7 +102,8 @@
         "usePhoto": "使用此照片"
       },
       "validation": {
-        "invalidId": "请输入有效的18位身份证号码"
+        "invalidId": "请输入有效的18位身份证号码",
+        "idIncomplete": "身份证号码不完整，请核实补全"
       },
       "ocr": {
         "processing": "正在读取身份证...",

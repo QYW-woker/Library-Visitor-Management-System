@@ -107,12 +107,13 @@
               v-model="form.idNumber"
               type="text"
               class="form-input form-input--mono"
-              :class="{ 'form-input--error': errors.idNumber }"
+              :class="{ 'form-input--error': errors.idNumber, 'form-input--warning': idNeedsCorrection }"
               :placeholder="t('staff.chinese.form.idNumber.placeholder')"
               maxlength="18"
               @input="form.idNumber = form.idNumber.toUpperCase()"
             />
             <span v-if="errors.idNumber" class="form-error">{{ errors.idNumber }}</span>
+            <span v-else-if="idNeedsCorrection" class="form-warning">{{ t('staff.chinese.validation.idIncomplete') }}</span>
           </div>
 
           <!-- Gender & Ethnicity -->
@@ -244,21 +245,35 @@ const showToast = ref(false)
 const toastMessage = ref('')
 const toastType = ref('info')
 
-// Form validation
+// Form validation - allow 15-18 digit IDs (OCR may miss some digits)
 const isFormValid = computed(() => {
   return (
     form.value.fullName.trim().length >= 2 &&
-    validateChineseId(form.value.idNumber)
+    validateChineseIdBasic(form.value.idNumber)
   )
 })
 
-// Validate Chinese ID number (18 digits)
-function validateChineseId(id) {
+// Basic validation - accept 15-18 digit IDs for form submission
+function validateChineseIdBasic(id) {
+  if (!id) return false
+  // Accept 15-18 digit IDs (OCR may occasionally miss digits)
+  const basicRegex = /^[1-9]\d{14,17}[\dXx]?$/
+  return basicRegex.test(id)
+}
+
+// Strict validation - exactly 18 digits in standard format
+function validateChineseIdStrict(id) {
   if (!id) return false
   // Chinese ID: 18 characters, last can be digit or X
   const regex = /^[1-9]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/
   return regex.test(id)
 }
+
+// Check if ID needs manual correction
+const idNeedsCorrection = computed(() => {
+  const id = form.value.idNumber
+  return id && validateChineseIdBasic(id) && !validateChineseIdStrict(id)
+})
 
 onMounted(async () => {
   await initCamera()
@@ -394,7 +409,7 @@ function validateForm() {
     valid = false
   }
 
-  if (!validateChineseId(form.value.idNumber)) {
+  if (!validateChineseIdBasic(form.value.idNumber)) {
     errors.value.idNumber = t('staff.chinese.validation.invalidId')
     valid = false
   }
@@ -710,6 +725,17 @@ async function handleSubmit() {
   margin-top: 4px;
   font-size: 12px;
   color: $color-error;
+}
+
+.form-warning {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #e67e00;
+}
+
+.form-input--warning {
+  border-color: #e67e00;
 }
 
 // Submit Footer

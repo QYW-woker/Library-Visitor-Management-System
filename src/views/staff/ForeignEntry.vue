@@ -211,6 +211,7 @@ import { useI18n } from 'vue-i18n'
 import { useVisitorStore } from '@/stores/visitor'
 import { validateName, validatePassport } from '@/utils/validators'
 import { VisitorType, COUNTRIES } from '@/types/visitor'
+import { recognizePassport } from '@/services/ocrService'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import AppToast from '@/components/AppToast.vue'
 
@@ -355,31 +356,46 @@ async function processPassport() {
 
   currentStep.value = 'processing'
 
-  // Simulate OCR processing
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  try {
+    console.log('Processing Passport with OCR...')
 
-  // Mock OCR result
-  ocrResult.value = {
-    success: true,
-    confidence: 87,
-    fields: {
-      fullName: { value: 'JOHN SMITH', confidence: 95 },
-      passportNumber: { value: 'AB1234567', confidence: 92 },
-      nationality: { value: 'US', confidence: 98 },
-      dateOfBirth: { value: '1985-06-15', confidence: 88 },
-      gender: { value: 'MALE', confidence: 99 },
-      passportExpiry: { value: '2028-06-14', confidence: 85 }
+    // 调用护照OCR服务
+    const result = await recognizePassport(capturedImage.value)
+    console.log('Passport OCR result:', result)
+
+    ocrResult.value = result
+
+    // Fill form with OCR data
+    if (result.success && result.fields) {
+      form.value.fullName = result.fields.fullName || ''
+      form.value.passportNumber = result.fields.passportNumber || ''
+      form.value.nationality = result.fields.nationality || ''
+      form.value.dateOfBirth = result.fields.dateOfBirth || ''
+      form.value.gender = result.fields.gender || ''
+      form.value.passportExpiry = result.fields.passportExpiry || ''
+
+      // 如果是mock数据，显示提示
+      if (result.isMock) {
+        toastMessage.value = t('staff.foreign.ocr.manualEntry')
+        toastType.value = 'info'
+        showToast.value = true
+      }
+    } else {
+      // OCR失败，显示错误信息
+      toastMessage.value = t('staff.foreign.ocr.failed')
+      toastType.value = 'error'
+      showToast.value = true
     }
-  }
-
-  // Fill form with OCR data
-  if (ocrResult.value.success) {
-    form.value.fullName = ocrResult.value.fields.fullName?.value || ''
-    form.value.passportNumber = ocrResult.value.fields.passportNumber?.value || ''
-    form.value.nationality = ocrResult.value.fields.nationality?.value || ''
-    form.value.dateOfBirth = ocrResult.value.fields.dateOfBirth?.value || ''
-    form.value.gender = ocrResult.value.fields.gender?.value || ''
-    form.value.passportExpiry = ocrResult.value.fields.passportExpiry?.value || ''
+  } catch (error) {
+    console.error('Passport OCR processing error:', error)
+    ocrResult.value = {
+      success: false,
+      error: error.message,
+      fields: {}
+    }
+    toastMessage.value = t('staff.foreign.ocr.failed')
+    toastType.value = 'error'
+    showToast.value = true
   }
 
   currentStep.value = 'form'

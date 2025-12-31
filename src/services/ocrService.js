@@ -499,6 +499,376 @@ function mockSaudiOcrResult() {
 }
 
 /**
+ * 将Base64图片发送到扣子工作流进行护照OCR识别
+ * 支持多语言护照识别
+ * @param {string} base64Image - Base64编码的图片
+ * @returns {Promise<object>} OCR识别结果
+ */
+export async function recognizePassport(base64Image) {
+  if (!COZE_CONFIG.apiKey) {
+    console.warn('Coze API not configured, using mock data')
+    return mockPassportOcrResult()
+  }
+
+  try {
+    // 处理base64图片 - 确保有完整的data URL格式
+    let imageData = base64Image
+    if (!imageData.startsWith('data:')) {
+      imageData = `data:image/jpeg;base64,${imageData}`
+    }
+
+    console.log('Passport Image data URL length:', imageData.length, 'chars')
+    console.log('Calling workflow API for Passport...')
+
+    // 直接传递data URL给input参数
+    const requestBody = {
+      workflow_id: COZE_CONFIG.workflowId,
+      parameters: {
+        input: imageData
+      }
+    }
+
+    console.log('Workflow request body size:', JSON.stringify(requestBody).length, 'bytes')
+
+    const response = await fetch(COZE_CONFIG.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    console.log('Coze Workflow API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Coze API error response:', errorText)
+      throw new Error(`Coze API error: ${response.status}`)
+    }
+
+    const result = await response.json()
+    console.log('Coze Workflow API response for Passport:', result)
+
+    // 解析扣子返回的结果
+    return parsePassportCozeResult(result)
+  } catch (error) {
+    console.error('Passport OCR recognition failed:', error)
+    return {
+      success: false,
+      error: error.message,
+      fields: {}
+    }
+  }
+}
+
+/**
+ * 解析扣子工作流返回的护照结果
+ * @param {object} cozeResult - 扣子API返回的原始结果
+ * @returns {object} 标准化的OCR结果
+ */
+function parsePassportCozeResult(cozeResult) {
+  try {
+    console.log('Parsing Passport Coze result:', cozeResult)
+
+    // 获取输出数据 - 工作流返回格式
+    let outputText = ''
+
+    // 工作流API返回格式: { code: 0, data: "..." } 或 { code: 0, data: { output: "..." } }
+    if (cozeResult.code === 0 && cozeResult.data) {
+      const data = cozeResult.data
+
+      if (typeof data === 'string') {
+        // 尝试解析JSON字符串
+        try {
+          const parsed = JSON.parse(data)
+          outputText = parsed.output || parsed.text || data
+        } catch {
+          outputText = data
+        }
+      } else if (typeof data === 'object') {
+        outputText = data.output || data.text || JSON.stringify(data)
+      }
+    } else if (cozeResult.data) {
+      outputText = typeof cozeResult.data === 'string' ? cozeResult.data : JSON.stringify(cozeResult.data)
+    }
+
+    console.log('Passport OCR text to parse:', outputText)
+
+    // 解析护照文本格式
+    const fields = parsePassportText(outputText)
+
+    return {
+      success: true,
+      confidence: 90,
+      fields,
+      rawData: cozeResult
+    }
+  } catch (error) {
+    console.error('Failed to parse Passport Coze result:', error)
+    return {
+      success: false,
+      error: 'Failed to parse OCR result',
+      fields: {}
+    }
+  }
+}
+
+/**
+ * 解析护照OCR文本
+ * 护照包含以下标准字段：
+ * - 姓名 (多语言)
+ * - 护照号码
+ * - 国籍
+ * - 出生日期
+ * - 性别
+ * - 有效期
+ * - MRZ (机器可读区)
+ */
+function parsePassportText(text) {
+  const fields = {
+    fullName: '',
+    passportNumber: '',
+    nationality: '',
+    dateOfBirth: '',
+    gender: '',
+    passportExpiry: '',
+    mrz: ''
+  }
+
+  if (!text) return fields
+
+  // 提取MRZ区域 (护照底部的两行机器可读代码)
+  // MRZ格式: P<国籍代码姓<<名<<<...  第二行包含护照号、出生日期等
+  const mrzMatch = text.match(/P[<A-Z0-9]{43,44}[\r\n]+[A-Z0-9<]{43,44}/i)
+  if (mrzMatch) {
+    fields.mrz = mrzMatch[0]
+    // 从MRZ提取信息
+    const mrzFields = parseMRZ(mrzMatch[0])
+    Object.assign(fields, mrzFields)
+  }
+
+  // 提取护照号码 - 多种格式
+  // 格式: 字母+数字组合，通常6-9位
+  if (!fields.passportNumber) {
+    const passportPatterns = [
+      /(?:Passport\s*(?:No|Number|#)?|护照号码?|رقم\s*(?:الجواز|جواز))[:\s]*([A-Z]{1,2}\d{6,8}|\d{8,9})/i,
+      /\b([A-Z]{1,2}\d{6,8})\b/,  // 常见格式如 AB1234567
+      /\b([A-Z]\d{8})\b/,          // 格式如 E12345678
+      /\b(\d{9})\b/                // 纯数字9位
+    ]
+    for (const pattern of passportPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        fields.passportNumber = match[1].toUpperCase()
+        break
+      }
+    }
+  }
+
+  // 提取姓名 - 多语言支持
+  // 英文名: SURNAME/GIVEN NAMES 或 Name: JOHN SMITH
+  const namePatterns = [
+    /(?:Surname|Family\s*Name|姓)[\/\s:：]*([A-Z\s]+)[\r\n]+(?:Given\s*Names?|名)[\/\s:：]*([A-Z\s]+)/i,
+    /(?:Name|Full\s*Name|姓名|الاسم)[:\s：]*([A-Z][A-Za-z\s\-']+)/i,
+    /([A-Z]{2,}(?:\s+[A-Z]{2,})+)/  // 连续大写英文名
+  ]
+  if (!fields.fullName) {
+    for (const pattern of namePatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        if (match[2]) {
+          // Surname + Given Names 格式
+          fields.fullName = `${match[1].trim()} ${match[2].trim()}`
+        } else {
+          fields.fullName = match[1].trim()
+        }
+        break
+      }
+    }
+  }
+
+  // 提取国籍 - 支持国家代码和全称
+  const nationalityPatterns = [
+    /(?:Nationality|国籍|الجنسية)[:\s：]*([A-Z]{2,3}|[A-Za-z\s]+)/i,
+    /(?:Country\s*(?:of\s*)?(?:Issue)?|Code)[:\s：]*([A-Z]{2,3})/i
+  ]
+  if (!fields.nationality) {
+    for (const pattern of nationalityPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        fields.nationality = match[1].trim().toUpperCase()
+        break
+      }
+    }
+  }
+
+  // 提取出生日期 - 多种格式
+  const dobPatterns = [
+    /(?:Date\s*of\s*Birth|Birth\s*Date|DOB|出生日期|تاريخ\s*الميلاد)[:\s：]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+    /(?:Date\s*of\s*Birth|DOB|出生)[:\s：]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
+    /(?:Date\s*of\s*Birth|DOB)[:\s：]*(\d{2}\s*[A-Z]{3}\s*\d{4})/i  // 15 JAN 1990
+  ]
+  if (!fields.dateOfBirth) {
+    for (const pattern of dobPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        fields.dateOfBirth = normalizeDate(match[1])
+        break
+      }
+    }
+  }
+
+  // 提取性别
+  const genderPatterns = [
+    /(?:Sex|Gender|性别|الجنس)[:\s：]*(M|F|Male|Female|男|女)/i
+  ]
+  for (const pattern of genderPatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      const g = match[1].toUpperCase()
+      fields.gender = (g === 'M' || g === 'MALE' || g === '男') ? 'MALE' : 'FEMALE'
+      break
+    }
+  }
+
+  // 提取有效期/过期日期
+  const expiryPatterns = [
+    /(?:Date\s*of\s*Expiry|Expiry|Expiration|Valid\s*Until|有效期至?|انتهاء)[:\s：]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+    /(?:Expiry|Valid)[:\s：]*(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i,
+    /(?:Expiry)[:\s：]*(\d{2}\s*[A-Z]{3}\s*\d{4})/i
+  ]
+  if (!fields.passportExpiry) {
+    for (const pattern of expiryPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        fields.passportExpiry = normalizeDate(match[1])
+        break
+      }
+    }
+  }
+
+  console.log('Parsed Passport fields:', fields)
+  return fields
+}
+
+/**
+ * 解析MRZ (机器可读区)
+ * MRZ第一行: P<国籍姓<<名<<<...
+ * MRZ第二行: 护照号<校验位国籍出生日期校验位性别有效期...
+ */
+function parseMRZ(mrz) {
+  const fields = {}
+  const lines = mrz.split(/[\r\n]+/)
+
+  if (lines.length >= 2) {
+    const line1 = lines[0].replace(/\s/g, '')
+    const line2 = lines[1].replace(/\s/g, '')
+
+    // 第一行: P<国籍代码姓<<名
+    if (line1.length >= 44) {
+      // 国籍 (位置3-5)
+      fields.nationality = line1.substring(2, 5).replace(/</g, '')
+
+      // 姓名 (位置6-44)
+      const namePart = line1.substring(5).replace(/</g, ' ').trim()
+      const nameParts = namePart.split(/\s{2,}/)
+      if (nameParts.length >= 2) {
+        fields.fullName = `${nameParts[0]} ${nameParts[1]}`.trim()
+      } else {
+        fields.fullName = namePart.replace(/\s+/g, ' ').trim()
+      }
+    }
+
+    // 第二行: 护照号(9位)+校验位+国籍(3位)+出生日期(YYMMDD)+校验位+性别+有效期(YYMMDD)+...
+    if (line2.length >= 44) {
+      // 护照号 (位置1-9)
+      fields.passportNumber = line2.substring(0, 9).replace(/</g, '')
+
+      // 出生日期 (位置14-19, YYMMDD格式)
+      const dobYY = line2.substring(13, 15)
+      const dobMM = line2.substring(15, 17)
+      const dobDD = line2.substring(17, 19)
+      const year = parseInt(dobYY) > 30 ? `19${dobYY}` : `20${dobYY}`
+      fields.dateOfBirth = `${year}-${dobMM}-${dobDD}`
+
+      // 性别 (位置21)
+      const sex = line2.charAt(20)
+      fields.gender = sex === 'M' ? 'MALE' : sex === 'F' ? 'FEMALE' : ''
+
+      // 有效期 (位置22-27, YYMMDD格式)
+      const expYY = line2.substring(21, 23)
+      const expMM = line2.substring(23, 25)
+      const expDD = line2.substring(25, 27)
+      const expYear = parseInt(expYY) > 30 ? `19${expYY}` : `20${expYY}`
+      fields.passportExpiry = `${expYear}-${expMM}-${expDD}`
+    }
+  }
+
+  return fields
+}
+
+/**
+ * 标准化日期格式为 YYYY-MM-DD
+ */
+function normalizeDate(dateStr) {
+  if (!dateStr) return ''
+
+  // 处理 DD MON YYYY 格式 (如 15 JAN 1990)
+  const monthNames = {
+    JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06',
+    JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12'
+  }
+  const monMatch = dateStr.match(/(\d{1,2})\s*([A-Z]{3})\s*(\d{4})/i)
+  if (monMatch) {
+    const day = monMatch[1].padStart(2, '0')
+    const month = monthNames[monMatch[2].toUpperCase()] || '01'
+    return `${monMatch[3]}-${month}-${day}`
+  }
+
+  // 处理其他日期格式
+  const parts = dateStr.split(/[\/\-\.]/)
+  if (parts.length === 3) {
+    let year, month, day
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD
+      [year, month, day] = parts
+    } else if (parts[2].length === 4) {
+      // DD-MM-YYYY 或 MM-DD-YYYY
+      // 假设是 DD-MM-YYYY (更常见的国际格式)
+      [day, month, year] = parts
+    } else {
+      // YY-MM-DD
+      year = parseInt(parts[0]) > 30 ? `19${parts[0]}` : `20${parts[0]}`
+      month = parts[1]
+      day = parts[2]
+    }
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  }
+
+  return dateStr
+}
+
+/**
+ * Mock OCR result for Passport testing when API is not configured
+ */
+function mockPassportOcrResult() {
+  return {
+    success: true,
+    confidence: 0,
+    isMock: true,
+    fields: {
+      fullName: '',
+      passportNumber: '',
+      nationality: '',
+      dateOfBirth: '',
+      gender: '',
+      passportExpiry: ''
+    }
+  }
+}
+
+/**
  * 检查OCR服务是否已配置
  */
 export function isOcrConfigured() {

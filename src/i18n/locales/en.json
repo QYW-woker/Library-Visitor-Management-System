@@ -56,6 +56,21 @@
         "title": "Quick Entry",
         "description": "Enter name and mobile number"
       },
+      "scan": {
+        "title": "Scan National ID",
+        "instruction": "Position the National ID within the frame",
+        "takePhoto": "Take Photo",
+        "uploadImage": "Upload Image",
+        "retake": "Retake",
+        "usePhoto": "Use This Photo"
+      },
+      "ocr": {
+        "processing": "Reading National ID...",
+        "success": "National ID read successfully",
+        "failed": "Could not read National ID",
+        "manualEntry": "Enter manually",
+        "confidence": "Confidence"
+      },
       "form": {
         "fullName": {
           "label": "Full Name",

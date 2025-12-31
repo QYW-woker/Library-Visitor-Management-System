@@ -56,6 +56,21 @@
         "title": "快速录入",
         "description": "输入姓名和手机号"
       },
+      "scan": {
+        "title": "扫描身份证",
+        "instruction": "将身份证置于框内",
+        "takePhoto": "拍照",
+        "uploadImage": "上传图片",
+        "retake": "重拍",
+        "usePhoto": "使用此照片"
+      },
+      "ocr": {
+        "processing": "正在读取身份证...",
+        "success": "身份证读取成功",
+        "failed": "无法读取身份证",
+        "manualEntry": "手动输入",
+        "confidence": "识别置信度"
+      },
       "form": {
         "fullName": {
           "label": "姓名",

@@ -100,19 +100,19 @@
           <template v-if="!capturedImage">
             <button class="scan-btn scan-btn--primary" @click="takePhoto">
               <span class="scan-btn__icon">📷</span>
-              <span>{{ t('staff.foreign.scan.takePhoto') }}</span>
+              <span>{{ t('staff.saudi.scan.takePhoto') }}</span>
             </button>
             <button class="scan-btn scan-btn--secondary" @click="uploadImage">
               <span class="scan-btn__icon">📁</span>
-              <span>{{ t('staff.foreign.scan.uploadImage') }}</span>
+              <span>{{ t('staff.saudi.scan.uploadImage') }}</span>
             </button>
           </template>
           <template v-else>
             <button class="scan-btn scan-btn--secondary" @click="retakePhoto">
-              🔄 {{ t('staff.foreign.scan.retake') }}
+              🔄 {{ t('staff.saudi.scan.retake') }}
             </button>
             <button class="scan-btn scan-btn--primary" @click="processId">
-              ✓ {{ t('staff.foreign.scan.usePhoto') }}
+              ✓ {{ t('staff.saudi.scan.usePhoto') }}
             </button>
           </template>
         </div>
@@ -123,14 +123,14 @@
       <!-- OCR Processing -->
       <div v-if="isProcessing" class="processing-section">
         <LoadingSpinner size="large" />
-        <p>{{ t('staff.foreign.ocr.processing') }}</p>
+        <p>{{ t('staff.saudi.ocr.processing') }}</p>
       </div>
 
       <!-- OCR Result Form -->
       <div v-if="ocrCompleted && !isProcessing" class="form-section">
         <div class="ocr-status" :class="ocrResult?.success ? 'ocr-status--success' : 'ocr-status--failed'">
           <span>{{ ocrResult?.success ? '✓' : '⚠' }}</span>
-          <span>{{ ocrResult?.success ? t('staff.foreign.ocr.success') : t('staff.foreign.ocr.failed') }}</span>
+          <span>{{ ocrResult?.success ? t('staff.saudi.ocr.success') : t('staff.saudi.ocr.failed') }}</span>
         </div>
 
         <form class="entry-form" @submit.prevent="handleSubmit">
@@ -184,6 +184,7 @@ import { useI18n } from 'vue-i18n'
 import { useVisitorStore } from '@/stores/visitor'
 import { validateSaudiMobile, validateName, formatMobileStorage } from '@/utils/validators'
 import { VisitorType } from '@/types/visitor'
+import { recognizeSaudiId } from '@/services/ocrService'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import AppToast from '@/components/AppToast.vue'
 
@@ -334,27 +335,50 @@ function retakePhoto() {
 }
 
 async function processId() {
+  if (!capturedImage.value) return
+
   isProcessing.value = true
 
-  // Mock OCR - simulate processing
-  await new Promise(resolve => setTimeout(resolve, 1200))
+  try {
+    console.log('Processing Saudi ID with OCR...')
 
-  // Mock result
-  ocrResult.value = {
-    success: true,
-    fields: {
-      fullName: 'محمد عبدالله الأحمد',
-      nationalId: '1087654321'
+    // 调用沙特身份证OCR服务
+    const result = await recognizeSaudiId(capturedImage.value)
+    console.log('Saudi ID OCR result:', result)
+
+    ocrResult.value = result
+
+    if (result.success && result.fields) {
+      // 填充表单字段
+      form.value.fullName = result.fields.fullName || result.fields.fullNameAr || ''
+      form.value.nationalId = result.fields.nationalId || ''
+
+      // 如果是mock数据，显示提示
+      if (result.isMock) {
+        toastMessage.value = t('staff.saudi.ocr.manualEntry')
+        toastType.value = 'info'
+        showToast.value = true
+      }
+    } else {
+      // OCR失败，显示错误信息
+      toastMessage.value = t('staff.saudi.ocr.failed')
+      toastType.value = 'error'
+      showToast.value = true
     }
+  } catch (error) {
+    console.error('Saudi ID OCR processing error:', error)
+    ocrResult.value = {
+      success: false,
+      error: error.message,
+      fields: {}
+    }
+    toastMessage.value = t('staff.saudi.ocr.failed')
+    toastType.value = 'error'
+    showToast.value = true
+  } finally {
+    isProcessing.value = false
+    ocrCompleted.value = true
   }
-
-  if (ocrResult.value.success) {
-    form.value.fullName = ocrResult.value.fields.fullName || ''
-    form.value.nationalId = ocrResult.value.fields.nationalId || ''
-  }
-
-  isProcessing.value = false
-  ocrCompleted.value = true
 }
 
 function validateForm() {

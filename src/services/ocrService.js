@@ -198,9 +198,24 @@ function parseChineseIdText(text) {
   }
 
   // 提取身份证号码 (18位数字，最后一位可能是X)
-  const idMatch = text.match(/([1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx])/i)
+  // 首先尝试严格匹配18位标准格式
+  let idMatch = text.match(/([1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx])/i)
   if (idMatch) {
     fields.idNumber = idMatch[1].toUpperCase()
+  } else {
+    // 备用方案：匹配"身份证号码"后面的15-18位数字（OCR可能漏识别部分数字）
+    const fallbackMatch = text.match(/(?:身份证号码?|公民身份证)[^\d]*(\d{15,18}[\dXx]?)/i)
+    if (fallbackMatch) {
+      fields.idNumber = fallbackMatch[1].toUpperCase()
+      console.log('Using fallback ID match:', fields.idNumber)
+    } else {
+      // 最后尝试：匹配任何连续的15-18位数字
+      const anyIdMatch = text.match(/\b(\d{15,18})\b/)
+      if (anyIdMatch) {
+        fields.idNumber = anyIdMatch[1]
+        console.log('Using any digit sequence match:', fields.idNumber)
+      }
+    }
   }
 
   // 提取性别

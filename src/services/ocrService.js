@@ -14,6 +14,49 @@ const COZE_CONFIG = {
 }
 
 /**
+ * 将Base64图片转换为Blob并上传到扣子
+ */
+async function uploadImageToCoze(base64Image) {
+  // 去除data URL前缀
+  let base64Data = base64Image
+  if (base64Data.includes('base64,')) {
+    base64Data = base64Data.split('base64,')[1]
+  }
+
+  // 转换为Blob
+  const byteCharacters = atob(base64Data)
+  const byteNumbers = new Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i)
+  }
+  const byteArray = new Uint8Array(byteNumbers)
+  const blob = new Blob([byteArray], { type: 'image/jpeg' })
+
+  // 创建FormData
+  const formData = new FormData()
+  formData.append('file', blob, 'id_card.jpg')
+
+  console.log('Uploading image to Coze, size:', blob.size, 'bytes')
+
+  const response = await fetch('https://api.coze.cn/v1/files/upload', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
+    },
+    body: formData
+  })
+
+  const result = await response.json()
+  console.log('Coze file upload response:', result)
+
+  if (result.code !== 0 || !result.data?.id) {
+    throw new Error(`File upload failed: ${result.msg || 'Unknown error'}`)
+  }
+
+  return result.data.id
+}
+
+/**
  * 将Base64图片发送到扣子工作流进行OCR识别
  * @param {string} base64Image - Base64编码的图片
  * @returns {Promise<object>} OCR识别结果
@@ -25,18 +68,25 @@ export async function recognizeChineseId(base64Image) {
   }
 
   try {
-    console.log('Sending request to Coze Workflow API...')
+    console.log('Step 1: Uploading image to Coze...')
 
-    // 处理base64图片 - 去除data URL前缀，只保留纯base64数据
-    let imageData = base64Image
+    // 先上传图片获取file_id
+    const fileId = await uploadImageToCoze(base64Image)
+    console.log('File uploaded, file_id:', fileId)
 
-    // 去除 data:image/xxx;base64, 前缀
-    if (imageData.includes('base64,')) {
-      imageData = imageData.split('base64,')[1]
+    console.log('Step 2: Calling workflow API...')
+
+    // 使用file_id调用工作流
+    const requestBody = {
+      workflow_id: COZE_CONFIG.workflowId,
+      parameters: {
+        input: {
+          file_id: fileId
+        }
+      }
     }
 
-    console.log('Image data length:', imageData.length, 'chars')
-    console.log('Image data preview:', imageData.substring(0, 30) + '...')
+    console.log('Workflow request:', JSON.stringify(requestBody, null, 2))
 
     const response = await fetch(COZE_CONFIG.apiUrl, {
       method: 'POST',
@@ -44,12 +94,7 @@ export async function recognizeChineseId(base64Image) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
       },
-      body: JSON.stringify({
-        workflow_id: COZE_CONFIG.workflowId,
-        parameters: {
-          input: imageData
-        }
-      })
+      body: JSON.stringify(requestBody)
     })
 
     console.log('Coze Workflow API response status:', response.status)

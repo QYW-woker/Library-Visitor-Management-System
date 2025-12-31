@@ -1,0 +1,217 @@
+{
+  "app": {
+    "name": "نظام إدارة الزوار KFNLAI",
+    "library": "مكتبة الملك فهد الوطنية"
+  },
+  "common": {
+    "language": "اللغة",
+    "loading": "جاري التحميل...",
+    "submit": "إرسال",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "save": "حفظ",
+    "delete": "حذف",
+    "search": "بحث",
+    "filter": "تصفية",
+    "reset": "إعادة تعيين",
+    "noData": "لا توجد بيانات",
+    "success": "نجاح",
+    "error": "خطأ",
+    "required": "مطلوب",
+    "optional": "اختياري",
+    "today": "اليوم",
+    "visitor": "زائر",
+    "visitors": "الزوار",
+    "all": "الكل"
+  },
+  "staff": {
+    "home": {
+      "title": "تسجيل الزوار",
+      "subtitle": "مكتبة الملك فهد الوطنية",
+      "saudiButton": {
+        "title": "زائر سعودي",
+        "subtitle": "تسجيل سريع بالاسم ورقم الجوال"
+      },
+      "foreignButton": {
+        "title": "زائر أجنبي",
+        "subtitle": "يتطلب مسح جواز السفر"
+      },
+      "todayStats": {
+        "title": "زوار اليوم",
+        "saudi": "سعودي",
+        "foreign": "أجنبي",
+        "total": "المجموع"
+      }
+    },
+    "saudi": {
+      "title": "تسجيل زائر سعودي",
+      "quickMode": {
+        "title": "إدخال سريع",
+        "description": "أدخل الاسم ورقم الجوال"
+      },
+      "form": {
+        "fullName": {
+          "label": "الاسم الكامل",
+          "placeholder": "أدخل اسم الزائر الكامل"
+        },
+        "mobileNumber": {
+          "label": "رقم الجوال",
+          "placeholder": "5XX XXX XXXX"
+        },
+        "nationalId": {
+          "label": "رقم الهوية الوطنية",
+          "placeholder": "رقم الهوية المكون من 10 أرقام"
+        }
+      },
+      "button": {
+        "submit": "تسجيل الزائر",
+        "scanId": "مسح الهوية الوطنية"
+      }
+    },
+    "foreign": {
+      "title": "تسجيل زائر أجنبي",
+      "scan": {
+        "title": "مسح جواز السفر",
+        "instruction": "ضع صفحة بيانات جواز السفر داخل الإطار",
+        "takePhoto": "التقاط صورة",
+        "uploadImage": "رفع صورة",
+        "retake": "إعادة الالتقاط",
+        "usePhoto": "استخدام هذه الصورة"
+      },
+      "ocr": {
+        "processing": "جاري قراءة جواز السفر...",
+        "success": "تمت قراءة جواز السفر بنجاح",
+        "failed": "تعذر قراءة جواز السفر",
+        "manualEntry": "الإدخال يدوياً",
+        "confidence": "نسبة الدقة"
+      },
+      "form": {
+        "fullName": {
+          "label": "الاسم الكامل",
+          "placeholder": "كما هو موضح في جواز السفر"
+        },
+        "passportNumber": {
+          "label": "رقم جواز السفر",
+          "placeholder": "أدخل رقم جواز السفر"
+        },
+        "nationality": {
+          "label": "الجنسية",
+          "placeholder": "اختر الدولة"
+        },
+        "dateOfBirth": {
+          "label": "تاريخ الميلاد",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "gender": {
+          "label": "الجنس",
+          "male": "ذكر",
+          "female": "أنثى"
+        },
+        "passportExpiry": {
+          "label": "تاريخ انتهاء جواز السفر",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "mobileNumber": {
+          "label": "رقم الجوال",
+          "placeholder": "اختياري"
+        }
+      },
+      "button": {
+        "submit": "تسجيل الزائر"
+      }
+    },
+    "success": {
+      "title": "اكتمل التسجيل",
+      "message": "تم تسجيل الزائر بنجاح",
+      "visitorName": "الزائر",
+      "entryTime": "وقت الدخول",
+      "nextVisitor": "الزائر التالي",
+      "backHome": "العودة للرئيسية",
+      "autoRedirect": "العودة للرئيسية خلال {seconds} ثواني..."
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "visitors": "الزوار",
+      "settings": "الإعدادات"
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "todayOverview": "نظرة عامة على اليوم",
+      "recentVisitors": "الزوار الأخيرون",
+      "viewAll": "عرض الكل"
+    },
+    "visitors": {
+      "title": "سجلات الزوار",
+      "search": {
+        "placeholder": "البحث بالاسم أو الجوال أو رقم جواز السفر"
+      },
+      "filter": {
+        "all": "جميع الأنواع",
+        "saudi": "زائر سعودي",
+        "foreign": "زائر أجنبي",
+        "dateRange": "نطاق التاريخ",
+        "from": "من",
+        "to": "إلى"
+      },
+      "table": {
+        "visitorType": "النوع",
+        "fullName": "الاسم الكامل",
+        "mobileNumber": "الجوال",
+        "passportNumber": "رقم الجواز",
+        "nationality": "الجنسية",
+        "visitDate": "تاريخ الزيارة",
+        "entryTime": "وقت الدخول",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "active": "في المكتبة",
+        "exited": "غادر",
+        "cancelled": "ملغي"
+      },
+      "empty": "لم يتم العثور على زوار",
+      "export": "تصدير"
+    }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "invalidMobile": "يرجى إدخال رقم جوال سعودي صحيح",
+    "invalidNationalId": "يرجى إدخال رقم هوية وطنية صحيح مكون من 10 أرقام",
+    "invalidPassport": "يرجى إدخال رقم جواز سفر صحيح",
+    "invalidName": "يرجى إدخال اسم صحيح (2-100 حرف)",
+    "invalidDate": "يرجى إدخال تاريخ صحيح (YYYY-MM-DD)",
+    "passportExpired": "جواز السفر منتهي الصلاحية"
+  },
+  "nationality": {
+    "SA": "المملكة العربية السعودية",
+    "US": "الولايات المتحدة",
+    "GB": "المملكة المتحدة",
+    "AE": "الإمارات العربية المتحدة",
+    "EG": "مصر",
+    "JO": "الأردن",
+    "KW": "الكويت",
+    "BH": "البحرين",
+    "QA": "قطر",
+    "OM": "عمان",
+    "IN": "الهند",
+    "PK": "باكستان",
+    "PH": "الفلبين",
+    "ID": "إندونيسيا",
+    "CN": "الصين",
+    "JP": "اليابان",
+    "KR": "كوريا الجنوبية",
+    "DE": "ألمانيا",
+    "FR": "فرنسا",
+    "IT": "إيطاليا",
+    "ES": "إسبانيا",
+    "TR": "تركيا",
+    "MY": "ماليزيا",
+    "SG": "سنغافورة",
+    "AU": "أستراليا",
+    "CA": "كندا",
+    "OTHER": "أخرى"
+  }
+}

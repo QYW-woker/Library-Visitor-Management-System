@@ -1,0 +1,217 @@
+{
+  "app": {
+    "name": "KFNLAI Visitor Management",
+    "library": "King Fahad National Library"
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "noData": "No data available",
+    "success": "Success",
+    "error": "Error",
+    "required": "Required",
+    "optional": "Optional",
+    "today": "Today",
+    "visitor": "Visitor",
+    "visitors": "Visitors",
+    "all": "All"
+  },
+  "staff": {
+    "home": {
+      "title": "Visitor Registration",
+      "subtitle": "King Fahad National Library",
+      "saudiButton": {
+        "title": "Saudi National Visitor",
+        "subtitle": "Quick registration with name & mobile"
+      },
+      "foreignButton": {
+        "title": "Foreign Visitor",
+        "subtitle": "Passport scan required"
+      },
+      "todayStats": {
+        "title": "Today's Visitors",
+        "saudi": "Saudi",
+        "foreign": "Foreign",
+        "total": "Total"
+      }
+    },
+    "saudi": {
+      "title": "Saudi National Registration",
+      "quickMode": {
+        "title": "Quick Entry",
+        "description": "Enter name and mobile number"
+      },
+      "form": {
+        "fullName": {
+          "label": "Full Name",
+          "placeholder": "Enter visitor's full name"
+        },
+        "mobileNumber": {
+          "label": "Mobile Number",
+          "placeholder": "5XX XXX XXXX"
+        },
+        "nationalId": {
+          "label": "National ID Number",
+          "placeholder": "10-digit ID number"
+        }
+      },
+      "button": {
+        "submit": "Register Visitor",
+        "scanId": "Scan National ID"
+      }
+    },
+    "foreign": {
+      "title": "Foreign Visitor Registration",
+      "scan": {
+        "title": "Scan Passport",
+        "instruction": "Position the passport data page within the frame",
+        "takePhoto": "Take Photo",
+        "uploadImage": "Upload Image",
+        "retake": "Retake",
+        "usePhoto": "Use This Photo"
+      },
+      "ocr": {
+        "processing": "Reading passport...",
+        "success": "Passport read successfully",
+        "failed": "Could not read passport",
+        "manualEntry": "Enter manually",
+        "confidence": "Confidence"
+      },
+      "form": {
+        "fullName": {
+          "label": "Full Name",
+          "placeholder": "As shown on passport"
+        },
+        "passportNumber": {
+          "label": "Passport Number",
+          "placeholder": "Enter passport number"
+        },
+        "nationality": {
+          "label": "Nationality",
+          "placeholder": "Select country"
+        },
+        "dateOfBirth": {
+          "label": "Date of Birth",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "gender": {
+          "label": "Gender",
+          "male": "Male",
+          "female": "Female"
+        },
+        "passportExpiry": {
+          "label": "Passport Expiry Date",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "mobileNumber": {
+          "label": "Mobile Number",
+          "placeholder": "Optional"
+        }
+      },
+      "button": {
+        "submit": "Register Visitor"
+      }
+    },
+    "success": {
+      "title": "Registration Complete",
+      "message": "Visitor has been registered successfully",
+      "visitorName": "Visitor",
+      "entryTime": "Entry Time",
+      "nextVisitor": "Next Visitor",
+      "backHome": "Back to Home",
+      "autoRedirect": "Returning to home in {seconds} seconds..."
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "visitors": "Visitors",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "todayOverview": "Today's Overview",
+      "recentVisitors": "Recent Visitors",
+      "viewAll": "View All"
+    },
+    "visitors": {
+      "title": "Visitor Records",
+      "search": {
+        "placeholder": "Search by name, mobile, or passport number"
+      },
+      "filter": {
+        "all": "All Types",
+        "saudi": "Saudi National",
+        "foreign": "Foreign Visitor",
+        "dateRange": "Date Range",
+        "from": "From",
+        "to": "To"
+      },
+      "table": {
+        "visitorType": "Type",
+        "fullName": "Full Name",
+        "mobileNumber": "Mobile",
+        "passportNumber": "Passport No.",
+        "nationality": "Nationality",
+        "visitDate": "Visit Date",
+        "entryTime": "Entry Time",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "In Library",
+        "exited": "Exited",
+        "cancelled": "Cancelled"
+      },
+      "empty": "No visitors found",
+      "export": "Export"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidMobile": "Please enter a valid Saudi mobile number",
+    "invalidNationalId": "Please enter a valid 10-digit National ID",
+    "invalidPassport": "Please enter a valid passport number",
+    "invalidName": "Please enter a valid name (2-100 characters)",
+    "invalidDate": "Please enter a valid date (YYYY-MM-DD)",
+    "passportExpired": "This passport has expired"
+  },
+  "nationality": {
+    "SA": "Saudi Arabia",
+    "US": "United States",
+    "GB": "United Kingdom",
+    "AE": "United Arab Emirates",
+    "EG": "Egypt",
+    "JO": "Jordan",
+    "KW": "Kuwait",
+    "BH": "Bahrain",
+    "QA": "Qatar",
+    "OM": "Oman",
+    "IN": "India",
+    "PK": "Pakistan",
+    "PH": "Philippines",
+    "ID": "Indonesia",
+    "CN": "China",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "DE": "Germany",
+    "FR": "France",
+    "IT": "Italy",
+    "ES": "Spain",
+    "TR": "Turkey",
+    "MY": "Malaysia",
+    "SG": "Singapore",
+    "AU": "Australia",
+    "CA": "Canada",
+    "OTHER": "Other"
+  }
+}

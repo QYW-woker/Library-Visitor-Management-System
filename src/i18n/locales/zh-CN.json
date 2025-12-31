@@ -1,0 +1,217 @@
+{
+  "app": {
+    "name": "KFNLAI 访客管理系统",
+    "library": "法赫德国王国家图书馆"
+  },
+  "common": {
+    "language": "语言",
+    "loading": "加载中...",
+    "submit": "提交",
+    "cancel": "取消",
+    "confirm": "确认",
+    "back": "返回",
+    "save": "保存",
+    "delete": "删除",
+    "search": "搜索",
+    "filter": "筛选",
+    "reset": "重置",
+    "noData": "暂无数据",
+    "success": "成功",
+    "error": "错误",
+    "required": "必填",
+    "optional": "选填",
+    "today": "今日",
+    "visitor": "访客",
+    "visitors": "访客",
+    "all": "全部"
+  },
+  "staff": {
+    "home": {
+      "title": "访客登记",
+      "subtitle": "法赫德国王国家图书馆",
+      "saudiButton": {
+        "title": "沙特本国访客",
+        "subtitle": "快速登记，仅需姓名和手机号"
+      },
+      "foreignButton": {
+        "title": "外国访客",
+        "subtitle": "需扫描护照"
+      },
+      "todayStats": {
+        "title": "今日访客",
+        "saudi": "沙特访客",
+        "foreign": "外国访客",
+        "total": "总计"
+      }
+    },
+    "saudi": {
+      "title": "沙特访客登记",
+      "quickMode": {
+        "title": "快速录入",
+        "description": "输入姓名和手机号"
+      },
+      "form": {
+        "fullName": {
+          "label": "姓名",
+          "placeholder": "请输入访客全名"
+        },
+        "mobileNumber": {
+          "label": "手机号",
+          "placeholder": "5XX XXX XXXX"
+        },
+        "nationalId": {
+          "label": "身份证号",
+          "placeholder": "10位身份证号码"
+        }
+      },
+      "button": {
+        "submit": "登记访客",
+        "scanId": "扫描身份证"
+      }
+    },
+    "foreign": {
+      "title": "外国访客登记",
+      "scan": {
+        "title": "扫描护照",
+        "instruction": "将护照信息页置于框内",
+        "takePhoto": "拍照",
+        "uploadImage": "上传图片",
+        "retake": "重拍",
+        "usePhoto": "使用此照片"
+      },
+      "ocr": {
+        "processing": "正在读取护照...",
+        "success": "护照读取成功",
+        "failed": "无法读取护照",
+        "manualEntry": "手动输入",
+        "confidence": "识别置信度"
+      },
+      "form": {
+        "fullName": {
+          "label": "姓名",
+          "placeholder": "与护照一致"
+        },
+        "passportNumber": {
+          "label": "护照号码",
+          "placeholder": "请输入护照号码"
+        },
+        "nationality": {
+          "label": "国籍",
+          "placeholder": "选择国家"
+        },
+        "dateOfBirth": {
+          "label": "出生日期",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "gender": {
+          "label": "性别",
+          "male": "男",
+          "female": "女"
+        },
+        "passportExpiry": {
+          "label": "护照有效期",
+          "placeholder": "YYYY-MM-DD"
+        },
+        "mobileNumber": {
+          "label": "手机号",
+          "placeholder": "选填"
+        }
+      },
+      "button": {
+        "submit": "登记访客"
+      }
+    },
+    "success": {
+      "title": "登记完成",
+      "message": "访客已成功登记",
+      "visitorName": "访客",
+      "entryTime": "入馆时间",
+      "nextVisitor": "下一位访客",
+      "backHome": "返回首页",
+      "autoRedirect": "{seconds} 秒后自动返回首页..."
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "仪表盘",
+      "visitors": "访客记录",
+      "settings": "设置"
+    },
+    "dashboard": {
+      "title": "仪表盘",
+      "todayOverview": "今日概览",
+      "recentVisitors": "最近访客",
+      "viewAll": "查看全部"
+    },
+    "visitors": {
+      "title": "访客记录",
+      "search": {
+        "placeholder": "按姓名、手机号或护照号搜索"
+      },
+      "filter": {
+        "all": "全部类型",
+        "saudi": "沙特访客",
+        "foreign": "外国访客",
+        "dateRange": "日期范围",
+        "from": "从",
+        "to": "至"
+      },
+      "table": {
+        "visitorType": "类型",
+        "fullName": "姓名",
+        "mobileNumber": "手机号",
+        "passportNumber": "护照号",
+        "nationality": "国籍",
+        "visitDate": "访问日期",
+        "entryTime": "入馆时间",
+        "status": "状态",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "在馆",
+        "exited": "已离开",
+        "cancelled": "已取消"
+      },
+      "empty": "未找到访客记录",
+      "export": "导出"
+    }
+  },
+  "validation": {
+    "required": "此字段为必填项",
+    "invalidMobile": "请输入有效的沙特手机号",
+    "invalidNationalId": "请输入有效的10位身份证号",
+    "invalidPassport": "请输入有效的护照号码",
+    "invalidName": "请输入有效的姓名（2-100个字符）",
+    "invalidDate": "请输入有效的日期（YYYY-MM-DD）",
+    "passportExpired": "此护照已过期"
+  },
+  "nationality": {
+    "SA": "沙特阿拉伯",
+    "US": "美国",
+    "GB": "英国",
+    "AE": "阿联酋",
+    "EG": "埃及",
+    "JO": "约旦",
+    "KW": "科威特",
+    "BH": "巴林",
+    "QA": "卡塔尔",
+    "OM": "阿曼",
+    "IN": "印度",
+    "PK": "巴基斯坦",
+    "PH": "菲律宾",
+    "ID": "印度尼西亚",
+    "CN": "中国",
+    "JP": "日本",
+    "KR": "韩国",
+    "DE": "德国",
+    "FR": "法国",
+    "IT": "意大利",
+    "ES": "西班牙",
+    "TR": "土耳其",
+    "MY": "马来西亚",
+    "SG": "新加坡",
+    "AU": "澳大利亚",
+    "CA": "加拿大",
+    "OTHER": "其他"
+  }
+}

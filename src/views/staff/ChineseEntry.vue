@@ -199,6 +199,7 @@ import { useI18n } from 'vue-i18n'
 import { useVisitorStore } from '@/stores/visitor'
 import { validateName } from '@/utils/validators'
 import { VisitorType } from '@/types/visitor'
+import { recognizeChineseId, isOcrConfigured } from '@/services/ocrService'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import AppToast from '@/components/AppToast.vue'
 
@@ -339,31 +340,39 @@ async function processId() {
 
   currentStep.value = 'processing'
 
-  // Simulate OCR processing
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  try {
+    // 调用扣子工作流API进行OCR识别
+    const result = await recognizeChineseId(capturedImage.value)
 
-  // Mock OCR result for Chinese ID
-  ocrResult.value = {
-    success: true,
-    confidence: 92,
-    fields: {
-      fullName: '张伟',
-      idNumber: '110105198901011234',
-      gender: 'MALE',
-      ethnicity: '汉',
-      dateOfBirth: '1989-01-01',
-      address: '北京市朝阳区建国路100号'
+    ocrResult.value = result
+
+    // Fill form with OCR data
+    if (result.success && result.fields) {
+      form.value.fullName = result.fields.fullName || ''
+      form.value.idNumber = result.fields.idNumber || ''
+      form.value.gender = result.fields.gender || ''
+      form.value.ethnicity = result.fields.ethnicity || ''
+      form.value.dateOfBirth = result.fields.dateOfBirth || ''
+      form.value.address = result.fields.address || ''
+
+      // 如果是Mock数据（API未配置），显示提示
+      if (result.isMock) {
+        toastMessage.value = 'OCR服务未配置，请手动输入信息'
+        toastType.value = 'warning'
+        showToast.value = true
+      }
+    } else {
+      // OCR失败，显示错误提示
+      toastMessage.value = result.error || t('staff.chinese.ocr.failed')
+      toastType.value = 'error'
+      showToast.value = true
     }
-  }
-
-  // Fill form with OCR data
-  if (ocrResult.value.success) {
-    form.value.fullName = ocrResult.value.fields.fullName || ''
-    form.value.idNumber = ocrResult.value.fields.idNumber || ''
-    form.value.gender = ocrResult.value.fields.gender || ''
-    form.value.ethnicity = ocrResult.value.fields.ethnicity || ''
-    form.value.dateOfBirth = ocrResult.value.fields.dateOfBirth || ''
-    form.value.address = ocrResult.value.fields.address || ''
+  } catch (error) {
+    console.error('OCR processing error:', error)
+    ocrResult.value = { success: false, error: error.message }
+    toastMessage.value = t('staff.chinese.ocr.failed')
+    toastType.value = 'error'
+    showToast.value = true
   }
 
   currentStep.value = 'form'

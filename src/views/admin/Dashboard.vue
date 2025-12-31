@@ -4,7 +4,12 @@
 
     <!-- Today's Overview -->
     <section class="overview-section">
-      <h2 class="section-title">{{ t('admin.dashboard.todayOverview') }}</h2>
+      <div class="section-header">
+        <h2 class="section-title">{{ t('admin.dashboard.todayOverview') }}</h2>
+        <button class="reset-btn" @click="confirmResetData" :disabled="isResetting">
+          {{ isResetting ? t('admin.dashboard.resetting') : t('admin.dashboard.resetDemoData') }}
+        </button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card stat-card--total">
           <div class="stat-card__icon">📊</div>
@@ -95,7 +100,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVisitorStore } from '@/stores/visitor'
 
@@ -104,6 +109,7 @@ const visitorStore = useVisitorStore()
 
 const stats = computed(() => visitorStore.todayStats)
 const recentVisitors = computed(() => visitorStore.getRecentVisitors(5))
+const isResetting = ref(false)
 
 onMounted(() => {
   visitorStore.initDemoData()
@@ -115,6 +121,26 @@ function getVisitorTypeIcon(type) {
     case 'CHINESE': return '🇨🇳'
     case 'FOREIGN': return '🌍'
     default: return '👤'
+  }
+}
+
+function confirmResetData() {
+  const confirmed = window.confirm(t('admin.dashboard.resetConfirm'))
+  if (confirmed) {
+    resetDemoData()
+  }
+}
+
+async function resetDemoData() {
+  isResetting.value = true
+  try {
+    const count = visitorStore.resetWithDemoData()
+    alert(t('admin.dashboard.resetSuccess', { count }))
+  } catch (error) {
+    console.error('Failed to reset demo data:', error)
+    alert(t('admin.dashboard.resetError'))
+  } finally {
+    isResetting.value = false
   }
 }
 </script>
@@ -141,6 +167,38 @@ function getVisitorTypeIcon(type) {
 // Overview Section
 .overview-section {
   margin-bottom: 32px;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .section-title {
+      margin: 0;
+    }
+  }
+}
+
+.reset-btn {
+  padding: 8px 16px;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #f57c00;
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
 }
 
 .stats-grid {

@@ -219,7 +219,12 @@
       "title": "仪表盘",
       "todayOverview": "今日概览",
       "recentVisitors": "最近访客",
-      "viewAll": "查看全部"
+      "viewAll": "查看全部",
+      "resetDemoData": "重置演示数据",
+      "resetting": "正在重置...",
+      "resetConfirm": "这将删除所有现有访客数据并生成新的演示数据。确定要继续吗？",
+      "resetSuccess": "演示数据已重置，已生成 {count} 位访客。",
+      "resetError": "重置演示数据失败，请重试。"
     },
     "visitors": {
       "title": "访客记录",

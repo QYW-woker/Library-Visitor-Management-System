@@ -219,7 +219,12 @@
       "title": "Dashboard",
       "todayOverview": "Today's Overview",
       "recentVisitors": "Recent Visitors",
-      "viewAll": "View All"
+      "viewAll": "View All",
+      "resetDemoData": "Reset Demo Data",
+      "resetting": "Resetting...",
+      "resetConfirm": "This will delete all existing visitor data and generate new demo data. Are you sure?",
+      "resetSuccess": "Demo data has been reset. {count} visitors generated.",
+      "resetError": "Failed to reset demo data. Please try again."
     },
     "visitors": {
       "title": "Visitor Records",
